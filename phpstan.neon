@@ -1,0 +1,4 @@
+# phpstan.neon
+parameters:
+    excludePaths:
+        - 'vendor/'
