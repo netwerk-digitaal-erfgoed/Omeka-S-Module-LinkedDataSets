@@ -30,7 +30,7 @@
         "phpmd": "./vendor/bin/phpmd --exclude vendor . text cleancode",
         "phpcs": "./vendor/bin/phpcs . --ignore=vendor",
         "phpcpd": "../vendor/bin/phpcpd",
-        "phpunit": "./vendor/bin/phpunit tests/",
+        "phpunit": "./vendor/bin/phpunit --do-not-cache-result tests/",
         "phpstan": "XDEBUG_MODE=off ./vendor/bin/phpstan analyse -l 9 .",
         "security-tests": "composer audit"
     },
