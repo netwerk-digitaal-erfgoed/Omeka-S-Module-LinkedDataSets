@@ -48,3 +48,4 @@ guideline correspond to Omeka-S resources.
 ## Required modules
 
  - [Custom Vocab](https://github.com/omeka-s-modules/CustomVocab)
+ - [Numeric Data Types](https://github.com/omeka-s-modules/NumericDataTypes)
