@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
+use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Omeka\Entity\Item;
+use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
@@ -13,6 +18,7 @@ use Omeka\Api\Exception\ValidationException;
 
 final class Module extends AbstractModule
 {
+    private ?Dispatcher $dispatcher = null;
     private const MODULE_DEPENDENCIES = [
         ['name' => 'CustomVocab', 'version' => '1.7.1'],
         ['name' => 'AdvancedResourceTemplate', 'version' => '3.4.4.17'],
@@ -29,14 +35,19 @@ final class Module extends AbstractModule
         return include __DIR__ . '/config/module.config.php';
     }
 
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->serviceLocator = $serviceLocator;
+    }
+
     public function install(ServiceLocatorInterface $serviceLocator)
     {
 
-        $this->checkPrerequisites($serviceLocator);
-        $this->createFoldersIfTheyDontExist();
-        $this->installSchemaOrgVocabulary($serviceLocator);
-        $this->installCustomVocabularies();
-        $this->installTemplates();
+//        $this->checkPrerequisites($serviceLocator);
+//        $this->createFoldersIfTheyDontExist();
+//        $this->installSchemaOrgVocabulary($serviceLocator);
+//        $this->installCustomVocabularies();
+//        $this->installTemplates();
     }
 
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
@@ -117,5 +128,25 @@ final class Module extends AbstractModule
             $message = 'The vocabulary Schema.org is possibly already installed. What to do?';
             throw new ModuleCannotInstallException((string) $message);
         }
+    }
+
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
+    {
+        $sharedEventManager->attach(
+            'Omeka\Entity\Item',
+            'entity.update.post',
+            function (Event $event) {
+                /** @var Item $item */
+                $item = $event->getTarget();
+                // check dataclass is catalag else reyrn
+                if ($item->getResourceClass()->getLabel() !== 'DataCatalog') {
+                    return;
+                }
+                /** @var \Omeka\Job\Dispatcher $dispatcher */
+                $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
+                //$dispatcher->dispatch(CreateCatalogDumpJob::class, $item->getId()); // async
+                $dispatcher->dispatch(CreateCatalogDumpJob::class, $item->getId(), $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class)); //sync
+            }
+        );
     }
 }
