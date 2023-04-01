@@ -10,14 +10,13 @@ use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
 use Omeka\Stdlib\Message;
 use Omeka\Api\Exception\ValidationException;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 
 final class Module extends AbstractModule
 {
     private const MODULE_DEPENDENCIES = [
         ['name' => 'CustomVocab', 'version' => '1.7.1'],
         ['name' => 'AdvancedResourceTemplate', 'version' => '3.4.4.17'],
+        ['name' => 'NumericDataTypes', 'version' => '1.11.0'],
     ];
 
     private const FOLDERS = [
@@ -30,9 +29,9 @@ final class Module extends AbstractModule
         return include __DIR__ . '/config/module.config.php';
     }
 
-
     public function install(ServiceLocatorInterface $serviceLocator)
     {
+
         $this->checkPrerequisites($serviceLocator);
         $this->createFoldersIfTheyDontExist();
         $this->installSchemaOrgVocabulary($serviceLocator);
@@ -42,7 +41,7 @@ final class Module extends AbstractModule
 
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
     {
-        /** @var DefaultModule $module */
+        /* @var DefaultModule $module */
         foreach (self::MODULE_DEPENDENCIES as $moduleDependency) {
             $module = $serviceLocator->get('Omeka\ModuleManager')
                 ->getModule($moduleDependency['name'])
@@ -54,7 +53,7 @@ final class Module extends AbstractModule
                     $translator->translate('This module requires the module "%s", version %s or above.'), // @translate
                     $moduleDependency['name'], $moduleDependency['version']
                 );
-                throw new ModuleCannotInstallException((string)$message);
+                throw new ModuleCannotInstallException((string) $message);
             }
 
             if ($module->getState() !== 'active') {
@@ -63,12 +62,13 @@ final class Module extends AbstractModule
                     $translator->translate('The "%s" module must be active'), // @translate
                     $moduleDependency['name']
                 );
-                throw new ModuleCannotInstallException((string)$message);
+                throw new ModuleCannotInstallException((string) $message);
             }
         }
     }
 
-    protected function createFoldersIfTheyDontExist(): void {
+    protected function createFoldersIfTheyDontExist(): void
+    {
         foreach (self::FOLDERS as $folderName) {
             $this->checkFolder($folderName['path']);
         }
@@ -76,8 +76,7 @@ final class Module extends AbstractModule
 
     protected function checkFolder($folderName): void
     {
-        $rootPath = $_SERVER['DOCUMENT_ROOT'];
-        $folderPath = $rootPath . $folderName;
+        $folderPath = OMEKA_PATH . $folderName;
 
         if (!is_dir($folderPath)) {
             mkdir($folderPath, 0755, true);
@@ -87,8 +86,8 @@ final class Module extends AbstractModule
         // If the directory exists, check if it is writable
         if (!is_writable($folderPath)) {
             $message = sprintf('Directory %s exists, but is not writable. 
-            Please make sure it is writable',$folderName);
-            throw new ModuleCannotInstallException((string)$message);
+            Please make sure it is writable', $folderName);
+            throw new ModuleCannotInstallException((string) $message);
         }
     }
 
@@ -102,7 +101,7 @@ final class Module extends AbstractModule
             'lang' => '',
             'label_property' => null,
             'comment_property' => null,
-            'file' => $_SERVER['DOCUMENT_ROOT']. 'modules/LinkedDataSets/asset/vocabularies/schema.org.rdf',
+            'file' => OMEKA_PATH . 'modules/LinkedDataSets/asset/vocabularies/schema.org.rdf',
         ];
 
         $vocabularyInfo = [
@@ -114,9 +113,9 @@ final class Module extends AbstractModule
 
         try {
             $rdfImporter->import($strategy, $vocabularyInfo, $options);
-        } catch(ValidationException $e) {
+        } catch (ValidationException $e) {
             $message = 'The vocabulary Schema.org is possibly already installed. What to do?';
-            throw new ModuleCannotInstallException((string)$message);
+            throw new ModuleCannotInstallException((string) $message);
         }
     }
 }
