@@ -8,9 +8,9 @@ use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Resource;
 use Laminas\Log\Logger;
-use Laminas\Log\Processor\ReferenceId;
-use Laminas\View\Helper\ServerUrl;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Api\Manager;
+use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 
 final class CatalogDumpJob extends AbstractJob
@@ -24,20 +24,20 @@ final class CatalogDumpJob extends AbstractJob
 
     protected ?Logger $logger = null;
     protected ?Manager $api = null;
+    protected $serverUrl;
+    protected $id;
+
+    public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
+    {
+        parent::__construct($job, $serviceLocator);
+        $this->logger = $serviceLocator->get('Omeka\Logger');
+        $this->serverUrl = $serviceLocator->get('ViewHelperManager')->get('ServerUrl');
+        $this->id = $this->getArg('id');
+    }
 
     public function perform(): void
     {
-        $id = $this->getArg('id');
-        $this->getLogger();
-
-        /** @var ServerUrl $serverUrl */
-        $serverUrl = $this->getServiceLocator()->get('ViewHelperManager')->get('ServerUrl');
-        if (!$serverUrl->getHost()) {
-            $serverUrl->setHost('http://localhost');
-        }
-
-        # URL of the API retrieve call to the data catalog
-        $apiUrl = $serverUrl->getScheme() . '://' . $serverUrl->getHost() . "/api/items/{$id}";
+        $apiUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . "/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
@@ -79,6 +79,14 @@ final class CatalogDumpJob extends AbstractJob
         }
 
         # Step 5 - remove Omeka classes and properties (o:)
+        $this->removeOmekaTags($graph);
+
+        # Step 6 - output the graph in several serializations
+        $this->dumpSerialisedFiles($graph);
+    }
+
+    protected function removeOmekaTags(Graph $graph): void
+    {
         foreach ($graph->resources() as $resource) {
             foreach ($resource->properties() as $propertyUris) {
                 if ($propertyUris == "rdf:type") {
@@ -97,9 +105,11 @@ final class CatalogDumpJob extends AbstractJob
                 }
             }
         }
+    }
 
-        # Step 6 - output the graph in several serializations
-        $fileName = "datacatalog-{$id}";
+    protected function dumpSerialisedFiles(Graph $graph): void
+    {
+        $fileName = "datacatalog-{$this->id}";
         foreach (self::DUMP_FORMATS as $format => $extension) {
             $content = $graph->serialise($format);
             file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
@@ -107,15 +117,5 @@ final class CatalogDumpJob extends AbstractJob
                 "The file {$fileName}.{$extension} is available." // @translate
             );
         }
-    }
-
-    protected function getLogger(): Logger
-    {
-        if ($this->logger) {
-            return $this->logger;
-        }
-        $this->logger = $this->getServiceLocator()->get('Omeka\Logger');
-
-        return $this->logger;
     }
 }
