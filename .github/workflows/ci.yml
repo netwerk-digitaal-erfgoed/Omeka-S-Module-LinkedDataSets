@@ -1,13 +1,22 @@
 name: CI
 on: [push]
 jobs:
-  build:
+  quality-assurance:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: php-actions/composer@v6
+      - name: Install Omeka S
+        uses: actions/checkout@v3
         with:
-          php_version: '8.2'
-
+          name: omeka/omeka-s
+      - name: Install Composer dependencies for Omeka S
+        run: composer install --prefer-dist
+      - name: Install the LinkedDataSets module
+        uses: actions/checkout@v3
+        with:
+          path: ./modules/LinkedDataSets
+      - name: Install Composer dependencies for LinkedDataSets
+        working-directory: ./modules/LinkedDataSets
+        run: composer install --prefer-dist
       - name: Run Quality checks
+        working-directory: ./modules/LinkedDataSets
         run: composer test

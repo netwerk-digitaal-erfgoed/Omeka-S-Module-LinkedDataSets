@@ -2,3 +2,6 @@
 parameters:
     excludePaths:
         - 'vendor/'
+    bootstrapFiles:
+        - '../../vendor/autoload.php'
+        - 'vendor/autoload.php'
