@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
+use LinkedDataSets\Application\Job\CatalogDumpJob;
+use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
@@ -126,6 +130,43 @@ final class Module extends AbstractModule
         }
     }
 
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
+    {
+        $sharedEventManager->attach(
+            ItemAdapter::class,
+            'api.update.pre', // Do we need to get the pre or post events?
+            [$this, 'dispatchDumpJob']
+        );
+    }
+
+    public function dispatchDumpJob(Event $event): void
+    {
+        /** @var Request $request */
+        $request = $event->getParam('request');
+
+        // the api manager needs to be somewhere else
+        $this->api = $this->getServiceLocator()->get('Omeka\ApiManager');
+
+        // needed to do an API call to determine if it is a Datacatalog
+        // Do we do this here or in the job?
+        $resource = $request->getResource();
+        $id = $request->getId();
+        $response = $this->api->read($resource, $id);
+        /** @var ItemRepresentation $content */
+        $content = $response->getContent();
+        /** @var ResourceClassRepresentation $resourceClass */
+        $resourceClass = $content->resourceClass();
+        $label = $resourceClass->label();
+
+        if ($label !== 'DataCatalog') { // Don't know if this is the best way?
+            return;
+        }
+
+        $apiUrl = $content->apiUrl();
+        /** @var Dispatcher $dispatcher */
+        $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
+        $dispatcher->dispatch(CatalogDumpJob::class, ['apiUrl' => $apiUrl, 'id' => $id ]); // async
+    }
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
         $sharedEventManager->attach(
