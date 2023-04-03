@@ -158,9 +158,11 @@ final class Module extends AbstractModule
             return;
         }
 
-        $apiUrl = $content->apiUrl();
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
-        $dispatcher->dispatch(CatalogDumpJob::class, ['apiUrl' => $apiUrl, 'id' => $id ]); // async
+        $useBackground = false; // later in config?
+        $job = $useBackground
+            ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
+            : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
     }
 }
