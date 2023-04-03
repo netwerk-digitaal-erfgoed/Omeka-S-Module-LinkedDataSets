@@ -8,7 +8,11 @@ use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Omeka\Entity\Item;
+use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Manager;
+use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Representation\ResourceClassRepresentation;
+use Omeka\Api\Request;
 use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
@@ -19,6 +23,7 @@ use Omeka\Api\Exception\ValidationException;
 final class Module extends AbstractModule
 {
     private ?Dispatcher $dispatcher = null;
+    private $api = null;
     private const MODULE_DEPENDENCIES = [
         ['name' => 'CustomVocab', 'version' => '1.7.1'],
         ['name' => 'AdvancedResourceTemplate', 'version' => '3.4.4.17'],
@@ -130,23 +135,4 @@ final class Module extends AbstractModule
         }
     }
 
-    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
-    {
-        $sharedEventManager->attach(
-            'Omeka\Entity\Item',
-            'entity.update.post',
-            function (Event $event) {
-                /** @var Item $item */
-                $item = $event->getTarget();
-                // check dataclass is catalag else reyrn
-                if ($item->getResourceClass()->getLabel() !== 'DataCatalog') {
-                    return;
-                }
-                /** @var \Omeka\Job\Dispatcher $dispatcher */
-                $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
-                //$dispatcher->dispatch(CreateCatalogDumpJob::class, $item->getId()); // async
-                $dispatcher->dispatch(CreateCatalogDumpJob::class, $item->getId(), $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class)); //sync
-            }
-        );
-    }
 }
