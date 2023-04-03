@@ -88,8 +88,8 @@ final class CatalogDumpJob extends AbstractJob
     protected function removeOmekaTags(Graph $graph): void
     {
         foreach ($graph->resources() as $resource) {
-            foreach ($resource->properties() as $propertyUris) {
-                if ($propertyUris == "rdf:type") {
+            foreach ($resource->properties() as $property) {
+                if ($property == "rdf:type") {
                     /** @var Resource $item */
                     foreach ($resource->all("rdf:type") as $item) {
                         if (preg_match("/omeka\.org\/s\/vocabs\/o/", $item->getUri())) {
