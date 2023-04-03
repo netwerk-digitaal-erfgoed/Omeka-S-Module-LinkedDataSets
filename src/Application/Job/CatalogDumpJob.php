@@ -8,15 +8,24 @@ use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Resource;
 use Laminas\Log\Logger;
+<<<<<<< HEAD
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Entity\Job;
+=======
+use Laminas\Log\Processor\ReferenceId;
+use Laminas\View\Helper\ServerUrl;
+use Omeka\Api\Manager;
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
 
 final class CatalogDumpJob extends AbstractJob
 {
+<<<<<<< HEAD
     // in php 8.1 convert to enum
+=======
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
     const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
@@ -25,6 +34,7 @@ final class CatalogDumpJob extends AbstractJob
     ];
 
     protected ?Logger $logger = null;
+<<<<<<< HEAD
     protected $serverUrl;
     protected $id;
 
@@ -49,6 +59,23 @@ final class CatalogDumpJob extends AbstractJob
     public function perform(): void
     {
         $apiUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . "/api/items/{$this->id}";
+=======
+    protected ?Manager $api = null;
+
+    public function perform(): void
+    {
+        $id = $this->getArg('id');
+        $this->getLogger();
+
+        /** @var ServerUrl $serverUrl */
+        $serverUrl = $this->getServiceLocator()->get('ViewHelperManager')->get('ServerUrl');
+        if (!$serverUrl->getHost()) {
+            $serverUrl->setHost('http://localhost');
+        }
+
+        # URL of the API retrieve call to the data catalog
+        $apiUrl = $serverUrl->getScheme() . '://' . $serverUrl->getHost() . "/api/items/{$id}";
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
@@ -111,6 +138,10 @@ final class CatalogDumpJob extends AbstractJob
                 }
             }
             foreach ($resource->propertyUris() as $propertyUris) {
+<<<<<<< HEAD
+=======
+                // Need investigation why the pattern is different here than in EasyRDF
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
                 if (preg_match("/omeka\.org\/s\/vocabs\/o/", $propertyUris)) {
                     $resource->delete($propertyUris);
                 }
@@ -118,9 +149,14 @@ final class CatalogDumpJob extends AbstractJob
         }
     }
 
+<<<<<<< HEAD
     protected function dumpSerialisedFiles(Graph $graph): void // candidate for separate class
     {
         $fileName = "datacatalog-{$this->id}"; // in separate class make a const FILENAME_PREFIX or so
+=======
+        # Step 6 - output the graph in several serializations
+        $fileName = "datacatalog-{$id}";
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
         foreach (self::DUMP_FORMATS as $format => $extension) {
             $content = $graph->serialise($format);
             file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
@@ -129,4 +165,17 @@ final class CatalogDumpJob extends AbstractJob
             );
         }
     }
+<<<<<<< HEAD
+=======
+
+    protected function getLogger(): Logger
+    {
+        if ($this->logger) {
+            return $this->logger;
+        }
+        $this->logger = $this->getServiceLocator()->get('Omeka\Logger');
+
+        return $this->logger;
+    }
+>>>>>>> 8bb62f5 (WIP: Changed Module listener and dispatched job)
 }
