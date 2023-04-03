@@ -16,7 +16,6 @@ use Omeka\Job\AbstractJob;
 final class CatalogDumpJob extends AbstractJob
 {
 
-    const BASE_URL = 'http://my-lando-app.lndo.site'; // Is this resolvable?
     const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
@@ -38,11 +37,11 @@ final class CatalogDumpJob extends AbstractJob
     public function perform()
     {
         // need to be change from a call to apiUrl;
-        $id = $this->getArg('catalog_id');
+        $apiUrl = $this->getArg('apiUrl');
+        $id = $this->getArg('id');
         $this->getLogger();
 
         # URL of the API retrieve call to the data catalog
-        $apiUrl = self::BASE_URL . '/api/items/' . $id;
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
