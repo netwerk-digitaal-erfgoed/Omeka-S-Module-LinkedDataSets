@@ -4,36 +4,32 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
-use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
-use Laminas\EventManager\Event;
-use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Omeka\Api\Adapter\ItemAdapter;
-use Omeka\Api\Manager;
-use Omeka\Api\Representation\ItemRepresentation;
-use Omeka\Api\Representation\ResourceClassRepresentation;
-use Omeka\Api\Request;
 use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
 use Omeka\Stdlib\Message;
 use Omeka\Api\Exception\ValidationException;
+use SplFileInfo;
+use Laminas\Config\Reader\Json as JsonReader;
 
 final class Module extends AbstractModule
 {
     private ?Dispatcher $dispatcher = null;
     private $api = null;
-    private const MODULE_DEPENDENCIES = [
-        ['name' => 'CustomVocab', 'version' => '1.7.1'],
-        ['name' => 'AdvancedResourceTemplate', 'version' => '3.4.4.17'],
-        ['name' => 'NumericDataTypes', 'version' => '1.11.0'],
-    ];
+    private JsonReader $jsonReader;
+    private array $customConfig;
 
-    private const FOLDERS = [
-        ['path' => 'files/datacatalogs/'],
-        ['path' => 'files/datadumps/'],
-    ];
+    public function __construct()
+    {
+        $this->jsonReader = new JsonReader();
+        if (!$this->jsonReader) {
+            throw new ServiceNotFoundException('Json reader not found');
+        }
+        $this->customConfig = $this->getCustomConfig();
+    }
 
     public function getConfig()
     {
@@ -47,9 +43,8 @@ final class Module extends AbstractModule
 
     public function install(ServiceLocatorInterface $serviceLocator)
     {
-
-//        $this->checkPrerequisites($serviceLocator);
-//        $this->createFoldersIfTheyDontExist();
+        $this->checkPrerequisites($serviceLocator);
+        $this->createFoldersIfTheyDontExist();
 //        $this->installSchemaOrgVocabulary($serviceLocator);
 //        $this->installCustomVocabularies();
 //        $this->installTemplates();
@@ -58,7 +53,7 @@ final class Module extends AbstractModule
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
     {
         /* @var DefaultModule $module */
-        foreach (self::MODULE_DEPENDENCIES as $moduleDependency) {
+        foreach ($this->customConfig['dependencies'] as $moduleDependency) {
             $module = $serviceLocator->get('Omeka\ModuleManager')
                 ->getModule($moduleDependency['name'])
             ;
@@ -85,14 +80,14 @@ final class Module extends AbstractModule
 
     protected function createFoldersIfTheyDontExist(): void
     {
-        foreach (self::FOLDERS as $folderName) {
+        foreach ($this->customConfig['folders'] as $folderName) {
             $this->checkFolder($folderName['path']);
         }
     }
 
     protected function checkFolder($folderName): void
     {
-        $folderPath = OMEKA_PATH . $folderName;
+        $folderPath = OMEKA_PATH . '/'. $folderName;
 
         if (!is_dir($folderPath)) {
             mkdir($folderPath, 0755, true);
@@ -135,4 +130,13 @@ final class Module extends AbstractModule
         }
     }
 
+    protected function getCustomConfig(): array
+    {
+        $jsonFile = new SplFileInfo(OMEKA_PATH . '/modules/LinkedDataSets/config/config.json');
+        if (!$jsonFile->isReadable() || !$jsonFile->isFile()) {
+            throw new \Exception('.ini file not readable');
+        }
+
+        return $this->jsonReader->fromFile($jsonFile->getRealPath());
+    }
 }
