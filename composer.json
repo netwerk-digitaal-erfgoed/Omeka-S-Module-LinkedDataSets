@@ -15,8 +15,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "LinkedDataSets\\Tests\\": "tests/",
-            "Omeka\\": "../../application/src"
+            "LinkedDataSetsTest\\": "test/LinkedDataSetsTest/"
         }
     },
 

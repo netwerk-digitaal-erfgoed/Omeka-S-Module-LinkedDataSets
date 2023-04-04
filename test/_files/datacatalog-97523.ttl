@@ -1,0 +1,93 @@
+@prefix schema: <https://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://my-lando-app.lndo.site/api/items/97523>
+  a schema:DataCatalog ;
+  schema:dataset <http://my-lando-app.lndo.site/api/items/97520>, <http://my-lando-app.lndo.site/api/items/97522>, <http://my-lando-app.lndo.site/api/items/97518> ;
+  schema:name "Afbeeldingen"^^xsd:string ;
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+
+<http://my-lando-app.lndo.site/api/items/97520>
+  a schema:Dataset ;
+  schema:datePublished "2023-03-24"^^xsd:string ;
+  schema:description "Maquette"^^xsd:string ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97519> ;
+  schema:license <http://creativecommons.org/publicdomain/zero/1.0/deed.nl> ;
+  schema:mainEntityOfPage <http://my-lando-app.lndo.site/api/item_sets/51765> ;
+  schema:name "item-set.51765"^^xsd:string ;
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+
+<http://my-lando-app.lndo.site/api/items/97522>
+  a schema:Dataset ;
+  schema:datePublished "2023-03-24"^^xsd:string ;
+  schema:description "Gevelstenen"^^xsd:string ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97521> ;
+  schema:license <http://creativecommons.org/publicdomain/mark/1.0/> ;
+  schema:mainEntityOfPage <http://my-lando-app.lndo.site/api/item_sets/16> ;
+  schema:name "item-set.16 a"^^xsd:string ;
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+
+<http://my-lando-app.lndo.site/api/items/97518>
+  a schema:Dataset ;
+  schema:datePublished "2023-03-24"^^xsd:string ;
+  schema:description "Apparaat Matthijs"^^xsd:string ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97517> ;
+  schema:license <http://creativecommons.org/publicdomain/zero/1.0/deed.nl> ;
+  schema:mainEntityOfPage <http://my-lando-app.lndo.site/api/item_sets/18696> ;
+  schema:name "item-set.18696"^^xsd:string ;
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+
+<http://my-lando-app.lndo.site/api/items/232>
+  a schema:Organization ;
+  schema:alternateName "GTM"^^xsd:string ;
+  schema:description "Een tijdmachine die de bebouwing van de historische binnenstad van Gouda onderzoekt, digitaal vastlegt en prachtig weergeeft. De Gouda Tijdmachine is een initatief van historische vereniging Die Goude en Streekarchief Midden-Holland."@nl, "A time machine that examines, digitally records and beautifully reproduces the buildings in the historic city center of Gouda. The Gouda Time Machine is an initiative of the historical association Die Goude and the Regional Archives of Central Holland."@en ;
+  schema:name "Gouda Tijdmachine"@nl, "Gouda Time Machine"@en ;
+  schema:url "https://www.goudatijdmachine.nl/"^^xsd:string .
+
+<http://my-lando-app.lndo.site/api/items/97519>
+  a schema:DataDownload ;
+  schema:contentSize "15714"^^xsd:string ;
+  schema:contentUrl <http://my-lando-app.lndo.site/data/files/datadumps/item-set.51765.jsonld> ;
+  schema:dateModified "2023-03-24"^^xsd:string ;
+  schema:description "Datadump in JSON-LD van item set 51765 - maquette"^^xsd:string ;
+  schema:encodingFormat "application/ld+json"^^xsd:string ;
+  schema:name "item-set.51765.jsonld"^^xsd:string .
+
+<http://my-lando-app.lndo.site/api/items/97521>
+  a schema:DataDownload ;
+  schema:contentSize "4335"^^xsd:string ;
+  schema:contentUrl <https://omeka.coret.org/data/files/datadumps/item-set.16.xml.gz> ;
+  schema:dateModified "2023-03-24"^^xsd:string ;
+  schema:description "Gecomprimeerde datadump in RDF/XML van item set 16 - gevelstenen"^^xsd:string ;
+  schema:encodingFormat "application/rdf+xml"^^xsd:string ;
+  schema:name "item-set.16.xml.gz"^^xsd:string .
+
+<http://my-lando-app.lndo.site/api/items/97517>
+  a schema:DataDownload ;
+  schema:contentSize "543303"^^xsd:string ;
+  schema:contentUrl <https://omeka.coret.org/data/files/datadumps/item-set.18696.ttl> ;
+  schema:dateModified "2023-03-24"^^xsd:string ;
+  schema:description "Datadump in Turtle van item set 18696 - apparaat matthijs"^^xsd:string ;
+  schema:encodingFormat "text/turtle"^^xsd:string ;
+  schema:name "item-set.18696.ttl"^^xsd:string .
+
+<http://my-lando-app.lndo.site/api/resources/97523>
+  schema:dataset <http://my-lando-app.lndo.site/api/items/97520>, <http://my-lando-app.lndo.site/api/items/97522>, <http://my-lando-app.lndo.site/api/items/97518> ;
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+
+<http://my-lando-app.lndo.site/api/resources/12997> schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+<http://my-lando-app.lndo.site/api/resources/97513> schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+<http://my-lando-app.lndo.site/api/resources/97515> schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+<http://my-lando-app.lndo.site/api/resources/97516> schema:publisher <http://my-lando-app.lndo.site/api/items/232> .
+<http://my-lando-app.lndo.site/api/resources/97518>
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97517> .
+
+<http://my-lando-app.lndo.site/api/resources/97520>
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97519> .
+
+<http://my-lando-app.lndo.site/api/resources/97522>
+  schema:publisher <http://my-lando-app.lndo.site/api/items/232> ;
+  schema:distribution <http://my-lando-app.lndo.site/api/items/97521> .
+

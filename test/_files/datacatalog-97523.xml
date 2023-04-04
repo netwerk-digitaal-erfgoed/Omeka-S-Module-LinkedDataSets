@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:schema="https://schema.org/">
+
+  <schema:DataCatalog rdf:about="http://my-lando-app.lndo.site/api/items/97523">
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97520"/>
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97522"/>
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97518"/>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Afbeeldingen</schema:name>
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </schema:DataCatalog>
+
+  <schema:Dataset rdf:about="http://my-lando-app.lndo.site/api/items/97520">
+    <schema:datePublished rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:datePublished>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Maquette</schema:description>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97519"/>
+    <schema:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/deed.nl"/>
+    <schema:mainEntityOfPage rdf:resource="http://my-lando-app.lndo.site/api/item_sets/51765"/>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.51765</schema:name>
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </schema:Dataset>
+
+  <schema:Dataset rdf:about="http://my-lando-app.lndo.site/api/items/97522">
+    <schema:datePublished rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:datePublished>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Gevelstenen</schema:description>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97521"/>
+    <schema:license rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+    <schema:mainEntityOfPage rdf:resource="http://my-lando-app.lndo.site/api/item_sets/16"/>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.16 a</schema:name>
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </schema:Dataset>
+
+  <schema:Dataset rdf:about="http://my-lando-app.lndo.site/api/items/97518">
+    <schema:datePublished rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:datePublished>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Apparaat Matthijs</schema:description>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97517"/>
+    <schema:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/deed.nl"/>
+    <schema:mainEntityOfPage rdf:resource="http://my-lando-app.lndo.site/api/item_sets/18696"/>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.18696</schema:name>
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </schema:Dataset>
+
+  <schema:Organization rdf:about="http://my-lando-app.lndo.site/api/items/232">
+    <schema:alternateName rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GTM</schema:alternateName>
+    <schema:description xml:lang="nl">Een tijdmachine die de bebouwing van de historische binnenstad van Gouda onderzoekt, digitaal vastlegt en prachtig weergeeft. De Gouda Tijdmachine is een initatief van historische vereniging Die Goude en Streekarchief Midden-Holland.</schema:description>
+    <schema:description xml:lang="en">A time machine that examines, digitally records and beautifully reproduces the buildings in the historic city center of Gouda. The Gouda Time Machine is an initiative of the historical association Die Goude and the Regional Archives of Central Holland.</schema:description>
+    <schema:name xml:lang="nl">Gouda Tijdmachine</schema:name>
+    <schema:name xml:lang="en">Gouda Time Machine</schema:name>
+    <schema:url rdf:datatype="http://www.w3.org/2001/XMLSchema#string">https://www.goudatijdmachine.nl/</schema:url>
+  </schema:Organization>
+
+  <schema:DataDownload rdf:about="http://my-lando-app.lndo.site/api/items/97519">
+    <schema:contentSize rdf:datatype="http://www.w3.org/2001/XMLSchema#string">15714</schema:contentSize>
+    <schema:contentUrl rdf:resource="http://my-lando-app.lndo.site/data/files/datadumps/item-set.51765.jsonld"/>
+    <schema:dateModified rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:dateModified>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Datadump in JSON-LD van item set 51765 - maquette</schema:description>
+    <schema:encodingFormat rdf:datatype="http://www.w3.org/2001/XMLSchema#string">application/ld+json</schema:encodingFormat>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.51765.jsonld</schema:name>
+  </schema:DataDownload>
+
+  <schema:DataDownload rdf:about="http://my-lando-app.lndo.site/api/items/97521">
+    <schema:contentSize rdf:datatype="http://www.w3.org/2001/XMLSchema#string">4335</schema:contentSize>
+    <schema:contentUrl rdf:resource="https://omeka.coret.org/data/files/datadumps/item-set.16.xml.gz"/>
+    <schema:dateModified rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:dateModified>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Gecomprimeerde datadump in RDF/XML van item set 16 - gevelstenen</schema:description>
+    <schema:encodingFormat rdf:datatype="http://www.w3.org/2001/XMLSchema#string">application/rdf+xml</schema:encodingFormat>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.16.xml.gz</schema:name>
+  </schema:DataDownload>
+
+  <schema:DataDownload rdf:about="http://my-lando-app.lndo.site/api/items/97517">
+    <schema:contentSize rdf:datatype="http://www.w3.org/2001/XMLSchema#string">543303</schema:contentSize>
+    <schema:contentUrl rdf:resource="https://omeka.coret.org/data/files/datadumps/item-set.18696.ttl"/>
+    <schema:dateModified rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2023-03-24</schema:dateModified>
+    <schema:description rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Datadump in Turtle van item set 18696 - apparaat matthijs</schema:description>
+    <schema:encodingFormat rdf:datatype="http://www.w3.org/2001/XMLSchema#string">text/turtle</schema:encodingFormat>
+    <schema:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">item-set.18696.ttl</schema:name>
+  </schema:DataDownload>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97523">
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97520"/>
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97522"/>
+    <schema:dataset rdf:resource="http://my-lando-app.lndo.site/api/items/97518"/>
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/12997">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97513">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97515">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97516">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97518">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97517"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97520">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97519"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://my-lando-app.lndo.site/api/resources/97522">
+    <schema:publisher rdf:resource="http://my-lando-app.lndo.site/api/items/232"/>
+    <schema:distribution rdf:resource="http://my-lando-app.lndo.site/api/items/97521"/>
+  </rdf:Description>
+
+</rdf:RDF>

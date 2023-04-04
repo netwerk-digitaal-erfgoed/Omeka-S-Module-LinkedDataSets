@@ -8,13 +8,16 @@ use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
 use EasyRdf\Resource;
 use Laminas\Log\Logger;
+use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Api\Manager;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
+use Omeka\Job\Exception\InvalidArgumentException;
 
 final class CatalogDumpJob extends AbstractJob
 {
+    // in php 8.1 convert to enum
     const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
@@ -23,7 +26,6 @@ final class CatalogDumpJob extends AbstractJob
     ];
 
     protected ?Logger $logger = null;
-    protected ?Manager $api = null;
     protected $serverUrl;
     protected $id;
 
@@ -31,8 +33,17 @@ final class CatalogDumpJob extends AbstractJob
     {
         parent::__construct($job, $serviceLocator);
         $this->logger = $serviceLocator->get('Omeka\Logger');
+        if (!$this->logger) {
+            throw new ServiceNotFoundException('The logger is not found');
+        }
         $this->serverUrl = $serviceLocator->get('ViewHelperManager')->get('ServerUrl');
+        if (!$this->serverUrl) {
+            throw new ServiceNotFoundException('The serverUrl is not found');
+        }
         $this->id = $this->getArg('id');
+        if (!$this->id) {
+            throw new InvalidArgumentException('No id was provided to the job');
+        }
     }
 
     public function perform(): void
@@ -107,9 +118,9 @@ final class CatalogDumpJob extends AbstractJob
         }
     }
 
-    protected function dumpSerialisedFiles(Graph $graph): void
+    protected function dumpSerialisedFiles(Graph $graph): void // candidate for separate class
     {
-        $fileName = "datacatalog-{$this->id}";
+        $fileName = "datacatalog-{$this->id}"; // in seperate class make a const FILENAME_PREFIX or so
         foreach (self::DUMP_FORMATS as $format => $extension) {
             $content = $graph->serialise($format);
             file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
