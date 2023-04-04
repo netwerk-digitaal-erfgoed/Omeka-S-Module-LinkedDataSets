@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
-use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
@@ -12,7 +11,6 @@ use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
 use Omeka\Stdlib\Message;
 use Omeka\Api\Exception\ValidationException;
-use SplFileInfo;
 use Laminas\Config\Reader\Json as JsonReader;
 
 final class Module extends AbstractModule
@@ -20,15 +18,11 @@ final class Module extends AbstractModule
     private ?Dispatcher $dispatcher = null;
     private $api = null;
     private JsonReader $jsonReader;
-    private array $customConfig;
+    private array $config;
 
     public function __construct()
     {
-        $this->jsonReader = new JsonReader();
-        if (!$this->jsonReader) {
-            throw new ServiceNotFoundException('Json reader not found');
-        }
-        $this->customConfig = $this->getCustomConfig();
+        $this->config = $this->getConfig();
     }
 
     public function getConfig()
@@ -52,8 +46,9 @@ final class Module extends AbstractModule
 
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
     {
+        $modules = $this->config['dependencies']['modules'];
         /* @var DefaultModule $module */
-        foreach ($this->customConfig['dependencies'] as $moduleDependency) {
+        foreach ($this->config['dependencies']['modules'] as $moduleDependency) {
             $module = $serviceLocator->get('Omeka\ModuleManager')
                 ->getModule($moduleDependency['name'])
             ;
@@ -80,14 +75,14 @@ final class Module extends AbstractModule
 
     protected function createFoldersIfTheyDontExist(): void
     {
-        foreach ($this->customConfig['folders'] as $folderName) {
-            $this->checkFolder($folderName['path']);
+        foreach ($this->config['folders'] as $folder) {
+            $this->checkFolder($folder['path']);
         }
     }
 
     protected function checkFolder($folderName): void
     {
-        $folderPath = OMEKA_PATH . '/'. $folderName;
+        $folderPath = OMEKA_PATH . '/' . $folderName;
 
         if (!is_dir($folderPath)) {
             mkdir($folderPath, 0755, true);
@@ -128,15 +123,5 @@ final class Module extends AbstractModule
             $message = 'The vocabulary Schema.org is possibly already installed. What to do?';
             throw new ModuleCannotInstallException((string) $message);
         }
-    }
-
-    protected function getCustomConfig(): array
-    {
-        $jsonFile = new SplFileInfo(OMEKA_PATH . '/modules/LinkedDataSets/config/config.json');
-        if (!$jsonFile->isReadable() || !$jsonFile->isFile()) {
-            throw new \Exception('.ini file not readable');
-        }
-
-        return $this->jsonReader->fromFile($jsonFile->getRealPath());
     }
 }
