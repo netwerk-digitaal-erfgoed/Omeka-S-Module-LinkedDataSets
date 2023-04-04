@@ -15,7 +15,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "LinkedDataSets\\Tests\\": "tests/"
+            "LinkedDataSetsTest\\": "test/LinkedDataSetsTest/"
         }
     },
 
