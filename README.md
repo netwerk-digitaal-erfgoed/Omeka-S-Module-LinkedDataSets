@@ -49,3 +49,6 @@ guideline correspond to Omeka-S resources.
 
  - [Custom Vocab](https://github.com/omeka-s-modules/CustomVocab)
  - [Numeric Data Types](https://github.com/omeka-s-modules/NumericDataTypes)
+
+## Development
+For development purposes there's a small prefilled database in /database/test.omeka.sql. The admin user `admin@example.com` with password `password`
