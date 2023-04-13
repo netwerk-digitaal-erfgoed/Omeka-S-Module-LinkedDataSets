@@ -10,7 +10,6 @@ use EasyRdf\Resource;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Omeka\Api\Manager;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
@@ -34,17 +33,18 @@ final class CatalogDumpJob extends AbstractJob
         parent::__construct($job, $serviceLocator);
         $this->logger = $serviceLocator->get('Omeka\Logger');
         if (!$this->logger) {
-            throw new ServiceNotFoundException('The logger is not found');
+            throw new ServiceNotFoundException('The logger service is not found');
         }
-        $this->serverUrl = $serviceLocator->get('ViewHelperManager')->get('ServerUrl');
+        $this->serverUrl = $serviceLocator->get('ViewHelperManager')?->get('ServerUrl');
         if (!$this->serverUrl) {
-            throw new ServiceNotFoundException('The serverUrl is not found');
+            throw new ServiceNotFoundException('The serverUrl service is not found');
         }
         $this->id = $this->getArg('id');
         if (!$this->id) {
-            throw new InvalidArgumentException('No id was provided to the job');
+            throw new InvalidArgumentException('No catalog_id was provided to the job');
         }
     }
+
 
     public function perform(): void
     {
@@ -96,6 +96,7 @@ final class CatalogDumpJob extends AbstractJob
         $this->dumpSerialisedFiles($graph);
     }
 
+    // Maybe this step isn't needed, Bob said on 11th April.
     protected function removeOmekaTags(Graph $graph): void
     {
         foreach ($graph->resources() as $resource) {
@@ -110,7 +111,6 @@ final class CatalogDumpJob extends AbstractJob
                 }
             }
             foreach ($resource->propertyUris() as $propertyUris) {
-                // Need investigation why the pattern is different here than in EasyRDF
                 if (preg_match("/omeka\.org\/s\/vocabs\/o/", $propertyUris)) {
                     $resource->delete($propertyUris);
                 }
@@ -120,7 +120,7 @@ final class CatalogDumpJob extends AbstractJob
 
     protected function dumpSerialisedFiles(Graph $graph): void // candidate for separate class
     {
-        $fileName = "datacatalog-{$this->id}"; // in seperate class make a const FILENAME_PREFIX or so
+        $fileName = "datacatalog-{$this->id}"; // in separate class make a const FILENAME_PREFIX or so
         foreach (self::DUMP_FORMATS as $format => $extension) {
             $content = $graph->serialise($format);
             file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
