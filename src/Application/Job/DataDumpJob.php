@@ -72,11 +72,17 @@ final class DataDumpJob extends AbstractJob
         if (!$this->compressionService) {
             throw new ServiceNotFoundException('The compression service is not found');
         }
+        $this->api = $serviceLocator->get('Omeka\ApiManager');
+        if (!$this->api) {
+            throw new ServiceNotFoundException('The API manager is not found');
+        }
     }
 
 
     public function perform(): void
     {
+//        $response = $this->api->read('items', $this->id);
+//        dd($response);
         $apiUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost()."/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:

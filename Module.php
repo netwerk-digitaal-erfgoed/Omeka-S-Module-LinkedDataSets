@@ -6,6 +6,7 @@ namespace LinkedDataSets;
 
 use BulkExport\Job\Export as JobExport;
 use LinkedDataSets\Application\Job\CatalogDumpJob;
+use LinkedDataSets\Application\Job\DataDumpJob;
 use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
@@ -159,16 +160,23 @@ final class Module extends AbstractModule
         $resourceClass = $content->resourceClass();
         $label = $resourceClass->label();
 
-        if ($label !== 'DataCatalog') { // Don't know if this is the best way?
-            return;
-        }
+
 
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
         $useBackground = false; // later in config?
-        $job = $useBackground
-            ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
-            : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+
+        if ($label === 'DataCatalog') { // Don't know if this is the best way?
+            $job = $useBackground
+                ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
+                : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+        }
+
+        if ($label === 'Dataset') { // Don't know if this is the best way?
+            $job = $useBackground
+                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
+                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+        }
     }
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
