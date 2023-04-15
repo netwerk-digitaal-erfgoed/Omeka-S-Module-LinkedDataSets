@@ -11,6 +11,7 @@ use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Service\DistributionService;
+use LinkedDataSets\Application\Service\ItemSetCrawler;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
@@ -62,6 +63,8 @@ final class DataDumpJob extends AbstractJob
         RdfNamespace::set('schema', 'https://schema.org/');
         $graph = new Graph(); //dep injection?
 
+        $folder = $this->createTemporaryFolder();
+
         # Step 1 - get lds dataset
         $graph->parse($apiUrl, 'jsonld');
 
@@ -70,25 +73,62 @@ final class DataDumpJob extends AbstractJob
 
         $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
 
+        $crawler = new ItemSetCrawler();
 
-            // call the crawler with the item-sets array
+        foreach ($itemSets as $itemSet) {
+            $item_set_id = $this->getIdFromPath($itemSet->getUri());
+            $crawler->crawl($item_set_id, $folder, $this->serverUrl);
+        }
 
-            // convert in distrbution file format
+        $generatedTripples = glob($folder. "/*.nt");
+
+
+// Name of the output file
+        $output_file = "$folder/merged_file.nt";
+
+// Open the output file for writing
+        $handle = fopen($output_file, "w");
+
+// Loop through the file array and append each file to the output file
+        foreach ($generatedTripples as $file) {
+            // Open the current file for reading
+            $handle2 = fopen($file, "r");
+
+            // Read the contents of the current file and append it to the output file
+            fwrite($handle, fread($handle2, filesize($file)));
+
+            // Close the current file
+            fclose($handle2);
+        }
+
+// Close the output file
+        fclose($handle);
+
+        $graph = new \EasyRdf\Graph();
+        $graph->parseFile($output_file);
+
+        $endFile = OMEKA_PATH . '/files/datadumps/'.$distribution->getFilename();
+        file_put_contents($endFile, $graph->serialise("jsonld"));
+
 
             // determine size and names and update record
 
     }
 
 
-    protected function dumpSerialisedFiles(Graph $graph): void // candidate for separate class
-    {
-        $fileName = "datacatalog-{$this->id}"; // in separate class make a const FILENAME_PREFIX or so
-        foreach (self::DUMP_FORMATS as $format => $extension) {
-            $content = $graph->serialise($format);
-            file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
-            $this->logger->notice(
-                "The file {$fileName}.{$extension} is available." // @translate
-            );
-        }
+
+    private function createTemporaryFolder() {
+        $dir = sys_get_temp_dir();
+        $tmp = uniqid('lds_');
+        $path = $dir . '/' . $tmp;
+        mkdir($path);
+        return $path;
+    }
+
+    private function getIdFromPath($uri): int {
+        $path = parse_url($uri, PHP_URL_PATH);
+        $segments = explode('/', $path);
+        $id = end($segments);
+        return (int) $id;
     }
 }
