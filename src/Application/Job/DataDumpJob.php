@@ -10,6 +10,7 @@ use EasyRdf\Resource;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use LinkedDataSets\Application\Service\DistributionService;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
@@ -27,6 +28,7 @@ final class DataDumpJob extends AbstractJob
     protected ?Logger $logger = null;
     protected $serverUrl;
     protected $id;
+    protected $api;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -43,11 +45,17 @@ final class DataDumpJob extends AbstractJob
         if (!$this->id) {
             throw new InvalidArgumentException('No catalog_id was provided to the job');
         }
+        $this->api = $serviceLocator->get('Omeka\ApiManager');
+        if (!$this->api) {
+            throw new ServiceNotFoundException('The API manager is not found');
+        }
     }
 
 
     public function perform(): void
     {
+//        $response = $this->api->read('items', $this->id);
+//        dd($response);
         $apiUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost()."/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
@@ -57,16 +65,18 @@ final class DataDumpJob extends AbstractJob
         # Step 1 - get lds dataset
         $graph->parse($apiUrl, 'jsonld');
 
-        foreach ($graph->resources() as $resource) {
-            # Step 2 - get all item_sets which are part of the dataset (sdo:mainEntityOfPage)
-            $itemSets = $resource->allResources("schema:mainEntityOfPage");
+        $distributionService = new DistributionService();
+        $distribution = $distributionService->getDistribution($graph);
+
+        $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
+
 
             // call the crawler with the item-sets array
 
             // convert in distrbution file format
 
             // determine size and names and update record
-        }
+
     }
 
 

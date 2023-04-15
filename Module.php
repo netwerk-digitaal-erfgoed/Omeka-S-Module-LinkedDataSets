@@ -161,8 +161,17 @@ final class Module extends AbstractModule
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
         $useBackground = false; // later in config?
-        $job = $useBackground
-            ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
-            : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+
+        if ($label === 'DataCatalog') { // Don't know if this is the best way?
+            $job = $useBackground
+                ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
+                : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+        }
+
+        if ($label === 'Dataset') { // Don't know if this is the best way?
+            $job = $useBackground
+                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
+                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+        }
     }
 }
