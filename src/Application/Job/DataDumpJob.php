@@ -12,6 +12,10 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Service\DistributionService;
 use LinkedDataSets\Application\Service\ItemSetCrawler;
+use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Response;
+use Omeka\DataType\Resource\Item;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
@@ -110,8 +114,18 @@ final class DataDumpJob extends AbstractJob
         $endFile = OMEKA_PATH . '/files/datadumps/'.$distribution->getFilename();
         file_put_contents($endFile, $graph->serialise("jsonld"));
 
+        $size = (new \SplFileInfo($endFile))->getSize();
 
-            // determine size and names and update record
+        // todo update distributie
+
+//        /** @var Response $entity */
+//        $entity = $this->api->read('items', $distribution->getId());
+//        /** @var ItemRepresentation $item */
+//        $item = $entity->getContent();
+//        $values = $item->values();
+////        $item-
+////        $this->api->update('items', $distribution->getId());
+//            // determine size and names and update record
 
     }
 

@@ -154,9 +154,7 @@ final class Module extends AbstractModule
         $resourceClass = $content->resourceClass();
         $label = $resourceClass->label();
 
-        if ($label !== 'DataCatalog') { // Don't know if this is the best way?
-            return;
-        }
+
 
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');

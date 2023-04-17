@@ -10,7 +10,8 @@ use LinkedDataSets\Application\Dto\DistributionDto;
 
 final class DistributionService
 {
-    public function getDistribution(Graph $graph) {
+    public function getDistribution(Graph $graph): DistributionDto
+    {
         $distributionItem = $graph->resourcesMatching('^schema:distribution');
 
         if (! $distributionItem[0] instanceof Resource) {
