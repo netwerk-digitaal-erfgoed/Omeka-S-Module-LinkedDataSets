@@ -12,7 +12,9 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Service\DistributionService;
 use LinkedDataSets\Application\Service\ItemSetCrawler;
+use LinkedDataSets\Infrastructure\Services\FileCompressionService;
 use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Manager;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Response;
 use Omeka\DataType\Resource\Item;
@@ -33,9 +35,10 @@ final class DataDumpJob extends AbstractJob
     protected ?Logger $logger = null;
     protected $serverUrl;
     protected $id;
-    protected $api;
-    protected DistributionService $distributionService;
-    protected ItemSetCrawler $itemSetCrawler;
+    protected ?Manager $api;
+    protected ?DistributionService $distributionService;
+    protected ?ItemSetCrawler $itemSetCrawler;
+    protected ?FileCompressionService $compressionService;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -63,6 +66,10 @@ final class DataDumpJob extends AbstractJob
         $this->itemSetCrawler = $serviceLocator->get('LDS\ItemSetCrawler');
         if (!$this->itemSetCrawler) {
             throw new ServiceNotFoundException('The ItemSetCrawler is not found');
+        }
+        $this->compressionService = $serviceLocator->get('LDS\FileCompressionService');
+        if (!$this->compressionService) {
+            throw new ServiceNotFoundException('The compression service is not found');
         }
     }
 
@@ -120,7 +127,17 @@ final class DataDumpJob extends AbstractJob
         $graph->parseFile($output_file);
 
         $endFile = OMEKA_PATH . '/files/datadumps/'.$distribution->getFilename();
-        file_put_contents($endFile, $graph->serialise("jsonld"));
+
+        $convertFolder = $this->createTemporaryFolder();
+        $tempFileName = uniqid();
+        $tempPath = $convertFolder . '/' . $tempFileName;
+
+//        file_put_contents($endFile, $graph->serialise("jsonld"));
+        file_put_contents($tempPath , $graph->serialise("jsonld"));
+
+        $compressedFile = $this->compressionService->gzcompressfile($tempPath);
+
+        rename($compressedFile, $endFile);
 
         $size = (new \SplFileInfo($endFile))->getSize();
 

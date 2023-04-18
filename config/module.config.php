@@ -5,6 +5,7 @@ namespace LinkedDataSets;
 
 
 use LinkedDataSets\Infrastructure\Services\Factories\DistributionServiceFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\FileCompressionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\ItemSetCrawlerFactory;
 
 return [
@@ -12,6 +13,7 @@ return [
         'factories' => [
             'LDS\DistributionService' => DistributionServiceFactory::class,
             'LDS\ItemSetCrawler' => ItemSetCrawlerFactory::class,
+            'LDS\FileCompressionService' => FileCompressionServiceFactory::class,
         ]
     ]
 ];
