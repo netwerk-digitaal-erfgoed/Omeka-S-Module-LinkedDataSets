@@ -48,7 +48,7 @@ final class DataDumpJob extends AbstractJob
         }
         $this->id = $this->getArg('id');
         if (!$this->id) {
-            throw new InvalidArgumentException('No catalog_id was provided to the job');
+            throw new InvalidArgumentException('No id was provided to the job');
         }
         $this->api = $serviceLocator->get('Omeka\ApiManager');
         if (!$this->api) {
@@ -119,7 +119,7 @@ final class DataDumpJob extends AbstractJob
         // todo update distributie
 
 //        /** @var Response $entity */
-//        $entity = $this->api->read('items', $distribution->getId());
+        $entity = $this->api->read('items', $distribution->getId());
 //        /** @var ItemRepresentation $item */
 //        $item = $entity->getContent();
 //        $values = $item->values();
