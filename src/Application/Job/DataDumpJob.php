@@ -76,8 +76,6 @@ final class DataDumpJob extends AbstractJob
 
     public function perform(): void
     {
-//        $response = $this->api->read('items', $this->id);
-//        dd($response);
         $apiUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost()."/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
@@ -99,32 +97,10 @@ final class DataDumpJob extends AbstractJob
             $this->itemSetCrawler->crawl($item_set_id, $folder, $this->serverUrl);
         }
 
-        $generatedTripples = glob($folder. "/*.nt");
-
-
-// Name of the output file
-        $output_file = "$folder/merged_file.nt";
-
-// Open the output file for writing
-        $handle = fopen($output_file, "w");
-
-// Loop through the file array and append each file to the output file
-        foreach ($generatedTripples as $file) {
-            // Open the current file for reading
-            $handle2 = fopen($file, "r");
-
-            // Read the contents of the current file and append it to the output file
-            fwrite($handle, fread($handle2, filesize($file)));
-
-            // Close the current file
-            fclose($handle2);
-        }
-
-// Close the output file
-        fclose($handle);
+        $mergedFile = $this->mergeTripples($folder);
 
         $graph = new \EasyRdf\Graph();
-        $graph->parseFile($output_file);
+        $graph->parseFile($mergedFile);
 
         $endFile = OMEKA_PATH . '/files/datadumps/'.$distribution->getFilename();
 
@@ -135,11 +111,16 @@ final class DataDumpJob extends AbstractJob
 //        file_put_contents($endFile, $graph->serialise("jsonld"));
         file_put_contents($tempPath , $graph->serialise("jsonld"));
 
-        $compressedFile = $this->compressionService->gzcompressfile($tempPath);
-
-        rename($compressedFile, $endFile);
+        // determine if the file needs to be compressed
+        if (substr($distribution->getFormat(), -4) === 'gzip') {
+            $compressedFile = $this->compressionService->gzCompressFile($tempPath);
+            rename($compressedFile, $endFile);
+        } else {
+            rename($tempPath, $endFile);
+        }
 
         $size = (new \SplFileInfo($endFile))->getSize();
+        $uri = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost().'/files/datadumps/'.$endFile;
 
         // todo update distributie
 
@@ -169,5 +150,37 @@ final class DataDumpJob extends AbstractJob
         $segments = explode('/', $path);
         $id = end($segments);
         return (int) $id;
+    }
+
+    /**
+     * @param string $folder
+     * @return string
+     */
+    protected function mergeTripples(string $folder): string
+    {
+        $generatedTripples = glob($folder."/*.nt");
+
+        // Name of the output file
+        $mergedFile = "$folder/merged_file.nt";
+
+        // Open the output file for writing
+        $handle = fopen($mergedFile, "w");
+
+        // Loop through the file array and append each file to the output file
+        foreach ($generatedTripples as $file) {
+            // Open the current file for reading
+            $handle2 = fopen($file, "r");
+
+            // Read the contents of the current file and append it to the output file
+            fwrite($handle, fread($handle2, filesize($file)));
+
+            // Close the current file
+            fclose($handle2);
+        }
+
+        // Close the output file
+        fclose($handle);
+
+        return $mergedFile;
     }
 }

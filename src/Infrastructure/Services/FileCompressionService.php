@@ -19,14 +19,10 @@ final class FileCompressionService
      *
      * @return string Output filename
      */
-    public function gzcompressfile(string $inFilename, int $level = 9): string
+    public function gzCompressFile(string $inFilename, int $level = 9): string
     {
-        // Is the file gzipped already?
-        $info = pathinfo($inFilename);
-
-        $extension = pathinfo($inFilename, PATHINFO_EXTENSION);
-        if ($extension === "gz") {
-            return $inFilename;
+        if ($this->isGzipFile($inFilename)) {
+            throw new \Exception("File {$inFilename} is already compressed");
         }
 
         // Open input file
@@ -57,4 +53,14 @@ final class FileCompressionService
         // Return the new filename
         return $gzFilename;
     }
+
+    private function isGzipFile($path): bool {
+        // the first the bytes of a gzip file are 1f 8b 08 according to
+        // https://www.rfc-editor.org/rfc/rfc1952#page-6
+        $handle = fopen($path, "rb");
+        $bytes = fread($handle, 3);
+        fclose($handle);
+        return bin2hex($bytes) === '1f8b08';
+    }
+
 }
