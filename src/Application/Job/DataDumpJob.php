@@ -34,6 +34,7 @@ final class DataDumpJob extends AbstractJob
     protected $serverUrl;
     protected $id;
     protected $api;
+    protected DistributionService $distributionService;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -54,6 +55,10 @@ final class DataDumpJob extends AbstractJob
         if (!$this->api) {
             throw new ServiceNotFoundException('The API manager is not found');
         }
+        $this->distributionService = $serviceLocator->get('LDS\DistributionService');
+        if (!$this->distributionService) {
+            throw new ServiceNotFoundException('The Disitribution Service is not found');
+        }
     }
 
 
@@ -73,7 +78,7 @@ final class DataDumpJob extends AbstractJob
         $graph->parse($apiUrl, 'jsonld');
 
         $distributionService = new DistributionService();
-        $distribution = $distributionService->getDistribution($graph);
+        $distribution = $this->distributionService->getDistribution($graph);
 
         $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
 
