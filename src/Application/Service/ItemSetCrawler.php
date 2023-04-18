@@ -37,7 +37,7 @@ final class ItemSetCrawler
         $startpage = 1;
 
         if (!file_exists($this->folder)) {
-            mkdir($this->folder);
+            throw new \Exception('The temporary folder does not exists');
         }
 
         $urlToCrawl = $this->baseUrl . '/api/items?item_set_id=' . $this->item_set_id .
