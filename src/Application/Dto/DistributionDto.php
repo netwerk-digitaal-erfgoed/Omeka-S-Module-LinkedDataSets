@@ -8,7 +8,7 @@ final class DistributionDto
     private string $format;
     private string $fileName;
     private int $id;
-    public function __construct($format, $fileName, $id)
+    public function __construct(string $format, string $fileName, int $id)
     {
         $this->fileName = $fileName;
         $this->format = $format;
