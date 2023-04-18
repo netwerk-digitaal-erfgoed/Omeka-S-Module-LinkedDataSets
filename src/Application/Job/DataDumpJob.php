@@ -35,6 +35,7 @@ final class DataDumpJob extends AbstractJob
     protected $id;
     protected $api;
     protected DistributionService $distributionService;
+    protected ItemSetCrawler $itemSetCrawler;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -59,6 +60,10 @@ final class DataDumpJob extends AbstractJob
         if (!$this->distributionService) {
             throw new ServiceNotFoundException('The Disitribution Service is not found');
         }
+        $this->itemSetCrawler = $serviceLocator->get('LDS\ItemSetCrawler');
+        if (!$this->itemSetCrawler) {
+            throw new ServiceNotFoundException('The ItemSetCrawler is not found');
+        }
     }
 
 
@@ -82,11 +87,9 @@ final class DataDumpJob extends AbstractJob
 
         $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
 
-        $crawler = new ItemSetCrawler();
-
         foreach ($itemSets as $itemSet) {
             $item_set_id = $this->getIdFromPath($itemSet->getUri());
-            $crawler->crawl($item_set_id, $folder, $this->serverUrl);
+            $this->itemSetCrawler->crawl($item_set_id, $folder, $this->serverUrl);
         }
 
         $generatedTripples = glob($folder. "/*.nt");
