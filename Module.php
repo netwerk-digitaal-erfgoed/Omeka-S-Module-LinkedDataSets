@@ -165,7 +165,7 @@ final class Module extends AbstractModule
 
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
-        $useBackground = true; // later in config?
+        $useBackground = false; // later in config?
 
         if ($label === 'DataCatalog') { // Don't know if this is the best way?
             $job = $useBackground
