@@ -15,9 +15,7 @@ return [
             'LDS\ItemSetCrawler' => ItemSetCrawlerFactory::class,
             'LDS\FileCompressionService' => FileCompressionServiceFactory::class,
         ]
-    ]
-];
-return [
+    ],
     'dependencies' => [
         'modules' => [
             ['name' => 'CustomVocab', 'version' => '1.7.1'],
