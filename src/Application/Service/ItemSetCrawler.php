@@ -87,7 +87,7 @@ final class ItemSetCrawler
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->process_contents( $response->getContent());
+            $this->extractOmekaItems( $response->getContent());
             return $this->get_next($response->getHeaders()->toString());
         }
 
@@ -101,7 +101,7 @@ final class ItemSetCrawler
         }
     }
 
-    private function process_contents($jsonld_string): void
+    private function extractOmekaItems($jsonld_string): void
     {
         $omekaItems = json_decode($jsonld_string, true);
         foreach ($omekaItems as $omekaItem) {

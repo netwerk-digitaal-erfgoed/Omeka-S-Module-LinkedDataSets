@@ -10,6 +10,7 @@ use EasyRdf\Resource;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use LinkedDataSets\Application\Dto\DistributionDto;
 use LinkedDataSets\Application\Service\DistributionService;
 use LinkedDataSets\Application\Service\ItemSetCrawler;
 use LinkedDataSets\Infrastructure\Services\FileCompressionService;
@@ -87,17 +88,23 @@ final class DataDumpJob extends AbstractJob
         # Step 1 - get lds dataset
         $graph->parse($apiUrl, 'jsonld');
 
-        $distributionService = new DistributionService();
         $distribution = $this->distributionService->getDistribution($graph);
-
         $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
+
+        if(!$this->isFormatSupported($distribution ) && !($itemSets)) {
+            return; // do nothing
+        }
+        if(!$this->isFormatSupported($distribution ) && ($itemSets)) {
+            $this->logger->info(
+                "Format {$distribution->getFormat()} for DataSet {$this->id} is not supported, no dump is created");
+        }
 
         foreach ($itemSets as $itemSet) {
             $item_set_id = $this->getIdFromPath($itemSet->getUri());
             $this->itemSetCrawler->crawl($item_set_id, $folder, $this->serverUrl);
         }
 
-        $mergedFile = $this->mergeTripples($folder);
+        $mergedFile = $this->mergeTriples($folder);
 
         $graph = new \EasyRdf\Graph();
         $graph->parseFile($mergedFile);
@@ -108,7 +115,7 @@ final class DataDumpJob extends AbstractJob
         $tempFileName = uniqid();
         $tempPath = $convertFolder . '/' . $tempFileName;
 
-//        file_put_contents($endFile, $graph->serialise("jsonld"));
+
         file_put_contents($tempPath , $graph->serialise("jsonld"));
 
         // determine if the file needs to be compressed
@@ -135,9 +142,8 @@ final class DataDumpJob extends AbstractJob
 
     }
 
-
-
-    private function createTemporaryFolder() {
+    private function createTemporaryFolder(): string
+    {
         $dir = sys_get_temp_dir();
         $tmp = uniqid('lds_');
         $path = $dir . '/' . $tmp;
@@ -152,35 +158,42 @@ final class DataDumpJob extends AbstractJob
         return (int) $id;
     }
 
-    /**
-     * @param string $folder
-     * @return string
-     */
-    protected function mergeTripples(string $folder): string
+    protected function mergeTriples(string $folder): string
     {
-        $generatedTripples = glob($folder."/*.nt");
+        $generatedTriples = glob($folder."/*.nt");
 
         // Name of the output file
         $mergedFile = "$folder/merged_file.nt";
-
         // Open the output file for writing
         $handle = fopen($mergedFile, "w");
 
         // Loop through the file array and append each file to the output file
-        foreach ($generatedTripples as $file) {
+        foreach ($generatedTriples as $file) {
             // Open the current file for reading
             $handle2 = fopen($file, "r");
-
             // Read the contents of the current file and append it to the output file
             fwrite($handle, fread($handle2, filesize($file)));
-
             // Close the current file
             fclose($handle2);
         }
-
         // Close the output file
         fclose($handle);
 
         return $mergedFile;
+    }
+
+    private function isFormatSupported(DistributionDto $distributionDto): bool {
+        $supportedFormats = [
+            "application/ld+json",
+            "application/ld+json+gzip",
+            "application/n-triples",
+            "application/n-triples+gzip",
+            "application/rdf+xml",
+            "application/rdf+xml+gzip",
+            "text/turtle",
+            "text/turtle+gzip",
+        ];
+
+        return (in_array( $distributionDto->getFormat(), $supportedFormats));
     }
 }
