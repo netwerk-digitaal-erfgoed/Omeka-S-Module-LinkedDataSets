@@ -12,6 +12,7 @@ use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Job\Dispatcher;
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
