@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "php": ">=7.4",
-        "ext-zlib": "*"
+        "ext-zlib": "*",
+      "ext-json": "*"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.10",
