@@ -7,24 +7,45 @@ namespace LinkedDataSets\Application\Service;
 use EasyRdf\Graph;
 use EasyRdf\Resource;
 use LinkedDataSets\Application\Dto\DistributionDto;
+use LinkedDataSets\Infrastructure\Exception\DistributionNotDefinedException;
+use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 
 final class DistributionService
 {
-    public function getDistribution(Graph $graph): DistributionDto
-    {
-        $distributionItem = $graph->resourcesMatching('^schema:distribution');
 
-        if (! $distributionItem[0] instanceof Resource) {
-            throw new \Exception('There is no distribution defined');
+    public function getDistributions(Graph $graph): array
+    {
+        $distributionItemsArray = [];
+        $distributionItems = $graph->resourcesMatching('^schema:distribution');
+
+        if (!$distributionItems) {
+            throw new DistributionNotDefinedException('There is no distribution defined');
         }
 
-        $newGraph = $graph::newAndLoad($distributionItem[0]->getUri());
+        foreach ($distributionItems as $distributionItem) {
+            $newGraph = $graph::newAndLoad($distributionItem->getUri());
 
-        $format = $newGraph->getLiteral( $distributionItem[0]->getUri(), 'schema:encodingFormat')->getValue();
-        $fileName = $newGraph->getLiteral( $distributionItem[0]->getUri(), 'schema:name')->getValue();
-        $id = $this->getIdFromPath($distributionItem[0]->getUri());
+            $format = $newGraph
+                ->getLiteral($distributionItem->getUri(), 'schema:encodingFormat')
+                ->getValue()
+            ;
+            $fileName = $newGraph
+                ->getLiteral($distributionItem->getUri(), 'schema:name')
+                ->getValue()
+            ;
+            $id = $this->getIdFromPath($distributionItem->getUri());
 
-        return new DistributionDto($format, $fileName, $id);
+//            if (!$this->isFormatSupported($format)) {
+//                $exception = new FormatNotSupportedException('encodingFormat is not supported');
+//                $exception->format = $format;
+//                throw $exception;
+//            }
+
+            $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
+
+        }
+
+        return $distributionItemsArray;
 
     }
 
@@ -33,6 +54,22 @@ final class DistributionService
         $segments = explode('/', $path);
         $id = end($segments);
         return (int) $id;
+    }
+
+    private function isFormatSupported($format): bool
+    {
+        $supportedFormats = [
+            "application/ld+json",
+            "application/ld+json+gzip",
+            "application/n-triples",
+            "application/n-triples+gzip",
+            "application/rdf+xml",
+            "application/rdf+xml+gzip",
+            "text/turtle",
+            "text/turtle+gzip",
+        ];
+
+        return (in_array($format, $supportedFormats));
     }
 
 }
