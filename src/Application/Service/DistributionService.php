@@ -35,10 +35,9 @@ final class DistributionService
             ;
             $id = $this->getIdFromPath($distributionItem->getUri());
 
+            // TODO: determine where to check for supported formats
 //            if (!$this->isFormatSupported($format)) {
-//                $exception = new FormatNotSupportedException('encodingFormat is not supported');
-//                $exception->format = $format;
-//                throw $exception;
+//                throw FormatNotSupportedException::withFormat($format);
 //            }
 
             $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
@@ -58,7 +57,7 @@ final class DistributionService
 
     private function isFormatSupported($format): bool
     {
-        $supportedFormats = [
+        $supportedFormats = [ // TODO: move to config later
             "application/ld+json",
             "application/ld+json+gzip",
             "application/n-triples",
