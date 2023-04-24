@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
-use BulkExport\Job\Export as JobExport;
-use LinkedDataSets\Application\Job\CatalogDumpJob;
-use LinkedDataSets\Application\Job\DataDumpJob;
-use LinkedDataSets\Application\Job\TestDataDumpJob;
-use LinkedDataSets\Domain\Job\CreateCatalogDumpJob;
+use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Job\Dispatcher;
-use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
 use Omeka\Stdlib\Message;
 use Omeka\Api\Exception\ValidationException;
 use Laminas\Config\Reader\Json as JsonReader;
 
-final class Module extends AbstractModule
+// see https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
+if (!class_exists(\Generic\AbstractModule::class)) {
+    require file_exists(dirname(__DIR__) . '/Generic/AbstractModule.php')
+        ? dirname(__DIR__) . '/Generic/AbstractModule.php'
+        : __DIR__ . '/src/Generic/AbstractModule.php';
+}
+use Generic\AbstractModule as GenericModule;
+
+final class Module extends GenericModule
 {
+    const NAMESPACE = __NAMESPACE__;
     private ?Dispatcher $dispatcher = null;
     private $api = null;
     private JsonReader $jsonReader;
@@ -43,15 +47,15 @@ final class Module extends AbstractModule
         $this->serviceLocator = $serviceLocator;
     }
 
-    public function install(ServiceLocatorInterface $serviceLocator)
-    {
-
-//        $this->checkPrerequisites($serviceLocator);
-//        $this->createFoldersIfTheyDontExist();
-//        $this->installSchemaOrgVocabulary($serviceLocator);
-//        $this->installCustomVocabularies();
-//        $this->installTemplates();
-    }
+//    public function install(ServiceLocatorInterface $serviceLocator): void
+//    {
+//
+////        $this->checkPrerequisites($serviceLocator);
+////        $this->createFoldersIfTheyDontExist();
+////        $this->installSchemaOrgVocabulary($serviceLocator);
+////        $this->installCustomVocabularies();
+////        $this->installTemplates();
+//    }
 
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
     {
@@ -162,23 +166,24 @@ final class Module extends AbstractModule
         $resourceClass = $content->resourceClass();
         $label = $resourceClass->label();
 
-
-
         /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
         $useBackground = false; // later in config?
 
-        if ($label === 'DataCatalog') { // Don't know if this is the best way?
-            $job = $useBackground
-                ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
-                : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
-        }
+        // for test
+        $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
 
-        if ($label === 'Dataset') { // Don't know if this is the best way?
-            $job = $useBackground
-                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
-                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
-        }
+//        if ($label === 'DataCatalog') { // Don't know if this is the best way?
+//            $job = $useBackground
+//                ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
+//                : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+//        }
+//
+//        if ($label === 'Dataset') { // Don't know if this is the best way?
+//            $job = $useBackground
+//                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
+//                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+//        }
     }
    
 }
