@@ -214,7 +214,7 @@ class InstallResources
             return false;
         }
 
-        $template = $this->api->searchOne('resource_templates', ['label' => $data['label']])->getContent();
+        $template = $this->api->searchOne('resource_templates', ['label' => $data['o:label']])->getContent();
         return !empty($template);
     }
 

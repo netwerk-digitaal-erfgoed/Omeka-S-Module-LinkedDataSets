@@ -47,15 +47,12 @@ final class Module extends GenericModule
         $this->serviceLocator = $serviceLocator;
     }
 
-//    public function install(ServiceLocatorInterface $serviceLocator): void
-//    {
-//
-////        $this->checkPrerequisites($serviceLocator);
-////        $this->createFoldersIfTheyDontExist();
-////        $this->installSchemaOrgVocabulary($serviceLocator);
-////        $this->installCustomVocabularies();
-////        $this->installTemplates();
-//    }
+    public function install(ServiceLocatorInterface $serviceLocator): void
+    {
+        $this->checkPrerequisites($serviceLocator);
+        $this->createFoldersIfTheyDontExist();
+        parent::install($serviceLocator);
+    }
 
     protected function checkPrerequisites(ServiceLocatorInterface $serviceLocator): void
     {
@@ -110,33 +107,6 @@ final class Module extends GenericModule
         }
     }
 
-    protected function installSchemaOrgVocabulary(ServiceLocatorInterface $serviceLocator): void
-    {
-        $rdfImporter = $serviceLocator->get('Omeka\RdfImporter');
-        $strategy = 'file';
-
-        $options = [
-            'format' => 'rdfxml',
-            'lang' => '',
-            'label_property' => null,
-            'comment_property' => null,
-            'file' => OMEKA_PATH . 'modules/LinkedDataSets/asset/vocabularies/schema.org.rdf',
-        ];
-
-        $vocabularyInfo = [
-            'o:label' => 'Schema.org',
-            'o:comment' => '',
-            'o:namespace_uri' => 'https://schema.org/',
-            'o:prefix' => 'schema',
-        ];
-
-        try {
-            $rdfImporter->import($strategy, $vocabularyInfo, $options);
-        } catch (ValidationException $e) {
-            $message = 'The vocabulary Schema.org is possibly already installed. What to do?';
-            throw new ModuleCannotInstallException((string) $message);
-        }
-    }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
