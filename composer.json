@@ -22,7 +22,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "LinkedDataSetsTest\\": "test/LinkedDataSetsTest/"
+            "LinkedDataSetsTest\\": "test/"
         }
     },
 
