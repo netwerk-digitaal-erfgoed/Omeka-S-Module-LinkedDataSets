@@ -29,16 +29,17 @@ final class DistributionService
                 ->getLiteral($distributionItem->getUri(), 'schema:encodingFormat')
                 ->getValue()
             ;
-            $fileName = $newGraph
-                ->getLiteral($distributionItem->getUri(), 'schema:name')
-                ->getValue()
-            ;
-            $id = $this->getIdFromPath($distributionItem->getUri());
 
             // TODO: determine where to check for supported formats
 //            if (!$this->isFormatSupported($format)) {
 //                throw FormatNotSupportedException::withFormat($format);
 //            }
+
+            $fileName = $newGraph
+                ->getLiteral($distributionItem->getUri(), 'schema:name')
+                ->getValue()
+            ;
+            $id = $this->getIdFromPath($distributionItem->getUri());
 
             $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
 

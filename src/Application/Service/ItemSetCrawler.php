@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace LinkedDataSets\Application\Service;
 
+use EasyRdf\Graph;
 use Laminas\Http\Client;
 use Laminas\Http\Response;
+use Laminas\Uri\Http;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 
@@ -138,7 +140,7 @@ final class ItemSetCrawler
 
     private function convertJsonldToNtriples($uri, $jsonld_string)
     {
-        $graph = new \EasyRdf\Graph($uri);
+        $graph = new Graph($uri);
         $graph->parse($jsonld_string, "jsonld", $uri);
 
         return $graph->serialise("nt");

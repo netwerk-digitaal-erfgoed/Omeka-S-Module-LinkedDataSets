@@ -15,6 +15,11 @@
         "phpmd/phpmd": "^2.13",
         "squizlabs/php_codesniffer": "^3.7"
     },
+    "autoload": {
+        "psr-4": {
+            "LinkedDataSets\\": "src/"
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "LinkedDataSetsTest\\": "test/LinkedDataSetsTest/"

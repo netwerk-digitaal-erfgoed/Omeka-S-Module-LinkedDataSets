@@ -16,6 +16,8 @@ use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 final class RecreateDataCatalogsJob extends AbstractJob
 {

@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
+use LinkedDataSets\Application\Job\DataDumpJob;
 use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Omeka\Api\Adapter\ItemAdapter;
+use Omeka\Api\Representation\ItemRepresentation;
+use Omeka\Api\Representation\ResourceTemplateRepresentation;
 use Omeka\Job\Dispatcher;
+use Omeka\Job\DispatchStrategy\Synchronous;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 use Omeka\Module\Module as DefaultModule;
 use Omeka\Stdlib\Message;
-use Omeka\Api\Exception\ValidationException;
-use Laminas\Config\Reader\Json as JsonReader;
 
 // see https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
 if (!class_exists(\Generic\AbstractModule::class)) {
@@ -29,7 +31,6 @@ final class Module extends GenericModule
     const NAMESPACE = __NAMESPACE__;
     private ?Dispatcher $dispatcher = null;
     private $api = null;
-    private JsonReader $jsonReader;
     private array $config;
 
     public function __construct()
@@ -113,47 +114,47 @@ final class Module extends GenericModule
         $sharedEventManager->attach(
             ItemAdapter::class,
             'api.update.pre', // Do we need to get the pre or post events?
-            [$this, 'dispatchDumpJob']
+            [$this, 'dispatchJobs']
+        );
+
+        $sharedEventManager->attach(
+            ItemAdapter::class,
+            'api.create.pre', // Do we need to get the pre or post events?
+            [$this, 'dispatchJobs']
         );
     }
 
-    public function dispatchDumpJob(Event $event): void
+    public function dispatchJobs(Event $event): void
     {
-        /** @var Request $request */
         $request = $event->getParam('request');
-
-        // the api manager needs to be somewhere else
         $this->api = $this->getServiceLocator()->get('Omeka\ApiManager');
-
-        // needed to do an API call to determine if it is a Datacatalog
-        // Do we do this here or in the job?
+        $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
         $resource = $request->getResource();
         $id = $request->getId();
         $response = $this->api->read($resource, $id);
         /** @var ItemRepresentation $content */
         $content = $response->getContent();
-        /** @var ResourceClassRepresentation $resourceClass */
-        $resourceClass = $content->resourceClass();
-        $label = $resourceClass->label();
+        /** @var ResourceTemplateRepresentation $resourceTemplate */
+        $resourceTemplate = $content->resourceTemplate();
+        $label = $resourceTemplate->label();
 
-        /** @var Dispatcher $dispatcher */
-        $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
-        $useBackground = false; // later in config?
+        $useBackground = true; // later in config?
 
-        // for test
-        $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+        if (
+            $label === 'LDS Datacatalog' ||
+            $label === 'LDS Dataset' ||
+            $label === 'LDS Distribution'
+        ) {
+            $job = $useBackground
+                ? $dispatcher->dispatch(RecreateDataCatalogsJob::class, []) // async
+                : $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(Synchronous::class));
+        }
 
-//        if ($label === 'DataCatalog') { // Don't know if this is the best way?
-//            $job = $useBackground
-//                ? $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ]) // async
-//                : $dispatcher->dispatch(CatalogDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
-//        }
-//
-//        if ($label === 'Dataset') { // Don't know if this is the best way?
-//            $job = $useBackground
-//                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
-//                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
-//        }
+        if ($label === 'LDS Dataset') { // Don't know if this is the best way?
+            $job = $useBackground
+                ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
+                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(
+                    Synchronous::class));
+        }
     }
-   
 }
