@@ -432,7 +432,7 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         return $result;
     }
 
-    protected function getServiceSettings(string $settingsType): \Omeka\Settings\AbstractSettings
+    protected function getServiceSettings(string $settingsType): ?\Omeka\Settings\AbstractSettings
     {
         $settingsTypes = [
             // 'config' => 'Omeka\Settings',
