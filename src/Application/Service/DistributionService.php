@@ -12,7 +12,6 @@ use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 
 final class DistributionService
 {
-
     public function getDistributions(Graph $graph): array
     {
         $distributionItemsArray = [];
@@ -42,14 +41,13 @@ final class DistributionService
             $id = $this->getIdFromPath($distributionItem->getUri());
 
             $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
-
         }
 
         return $distributionItemsArray;
-
     }
 
-    private function getIdFromPath($uri): int {
+    private function getIdFromPath($uri): int
+    {
         $path = parse_url($uri, PHP_URL_PATH);
         $segments = explode('/', $path);
         $id = end($segments);
@@ -71,5 +69,4 @@ final class DistributionService
 
         return (in_array($format, $supportedFormats));
     }
-
 }

@@ -82,7 +82,7 @@ final class DataDumpJob extends AbstractJob
      */
     public function perform(): void
     {
-        $apiUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost()."/api/items/{$this->id}";
+        $apiUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . "/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
@@ -97,19 +97,22 @@ final class DataDumpJob extends AbstractJob
             $distributions = $this->distributionService->getDistributions($graph);
         } catch (FormatNotSupportedException $e) {
             $this->logger->info(
-                "Format {$e->format} for DataSet {$this->id} is not supported, no dump is created");
+                "Format {$e->format} for DataSet {$this->id} is not supported, no dump is created"
+            );
             return;
         } catch (DistributionNotDefinedException $e) {
             $this->logger->info(
-                "DataSet {$this->id} has no distribution defined");
+                "DataSet {$this->id} has no distribution defined"
+            );
             return;
         }
 
         $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
 
-        if(!$itemSets) {
+        if (!$itemSets) {
             $this->logger->info(
-                "DataSet {$this->id} has no item_sets defined");
+                "DataSet {$this->id} has no item_sets defined"
+            );
             return;
         }
 
@@ -124,11 +127,11 @@ final class DataDumpJob extends AbstractJob
         $graph->parseFile($mergedFile);
 
         foreach ($distributions as $distribution) {
-            $endFile = OMEKA_PATH.'/files/datadumps/'.$distribution->getFilename();
+            $endFile = OMEKA_PATH . '/files/datadumps/' . $distribution->getFilename();
 
             $convertFolder = $this->createTemporaryFolder();
             $tempFileName = uniqid();
-            $tempPath = $convertFolder.'/'.$tempFileName;
+            $tempPath = $convertFolder . '/' . $tempFileName;
 
             file_put_contents(
                 $tempPath,
@@ -144,10 +147,9 @@ final class DataDumpJob extends AbstractJob
             }
         }
         $size = (new \SplFileInfo($endFile))->getSize();
-        $uri = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost().'/files/datadumps/'.$endFile;
+        $uri = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . '/files/datadumps/' . $endFile;
 
         // todo update distributie
-
     }
 
     private function createTemporaryFolder(): string
@@ -159,7 +161,8 @@ final class DataDumpJob extends AbstractJob
         return $path;
     }
 
-    private function getIdFromPath($uri): int {
+    private function getIdFromPath($uri): int
+    {
         $path = parse_url($uri, PHP_URL_PATH);
         $segments = explode('/', $path);
         $id = end($segments);
@@ -168,7 +171,7 @@ final class DataDumpJob extends AbstractJob
 
     protected function mergeTriples(string $folder): string
     {
-        $generatedTriples = glob($folder."/*.nt");
+        $generatedTriples = glob($folder . "/*.nt");
 
         // Name of the output file
         $mergedFile = "$folder/merged_file.nt";
@@ -190,7 +193,8 @@ final class DataDumpJob extends AbstractJob
         return $mergedFile;
     }
 
-    private function conversionFormat($format): string {
+    private function conversionFormat($format): string
+    {
         if (str_contains($format, 'text/turtle')) {
             return 'ttl';
         }
@@ -205,5 +209,4 @@ final class DataDumpJob extends AbstractJob
         }
         throw new \Exception('format not found');
     }
-
 }

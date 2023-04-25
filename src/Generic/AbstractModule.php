@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /*
  * Copyright Daniel Berthereau, 2018-2023
  *
@@ -193,7 +196,8 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
     public function uninstallAllResources(): AbstractModule
     {
         $installResources = $this->getInstallResources();
-        if (!$installResources
+        if (
+            !$installResources
             || !method_exists($installResources, 'deleteAllResources')
         ) {
             // Nothing to install.
@@ -883,7 +887,8 @@ abstract class AbstractModule extends \Omeka\Module\AbstractModule
         if ($version) {
             $message = new \Omeka\Stdlib\Message(
                 $translator->translate('This module requires the module "%1$s", version %2$s or above.'), // @translate
-                $moduleName, $version
+                $moduleName,
+                $version
             );
         } else {
             $message = new \Omeka\Stdlib\Message(

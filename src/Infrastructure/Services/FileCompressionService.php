@@ -32,8 +32,8 @@ final class FileCompressionService
         }
 
         // Open output file
-        $gzFilename = $inFilename.".gz";
-        $mode = "wb".$level;
+        $gzFilename = $inFilename . ".gz";
+        $mode = "wb" . $level;
         $gzFile = gzopen($gzFilename, $mode);
         if ($gzFile === false) {
             fclose($inFile);
@@ -58,7 +58,8 @@ final class FileCompressionService
         return $gzFilename;
     }
 
-    private function isGzipFile(string $path): bool {
+    private function isGzipFile(string $path): bool
+    {
         // the first the bytes of a gzip file are 1f 8b 08 according to
         // https://www.rfc-editor.org/rfc/rfc1952#page-6
         $handle = fopen($path, "rb");
@@ -72,5 +73,4 @@ final class FileCompressionService
         fclose($handle);
         return bin2hex($bytes) === '1f8b08';
     }
-
 }

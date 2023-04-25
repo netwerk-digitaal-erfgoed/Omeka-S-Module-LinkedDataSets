@@ -21,7 +21,6 @@ use Psr\Container\NotFoundExceptionInterface;
 
 final class RecreateDataCatalogsJob extends AbstractJob
 {
-    // in php 8.1 convert to enum
     protected ?Logger $logger = null;
     protected ApiManagerHelper $apiHelper;
     protected CatalogDumpService $catalogDumpService;
@@ -48,6 +47,5 @@ final class RecreateDataCatalogsJob extends AbstractJob
         foreach ($catalogs as $catalog) {
             $this->catalogDumpService->dumpCatalog($catalog->id());
         }
-
     }
 }

@@ -25,14 +25,15 @@ final class ItemSetCrawler
     private $serverUrl;
     private $baseUrl;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
     public function crawl($itemSetId, $folder, $serverUrl): void
     {
         $this->itemSetId = $itemSetId;
         $this->folder = $folder;
         $this->serverUrl = $serverUrl;
-        $this->baseUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost();
+        $this->baseUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost();
 
         $startpage = 1;
 
@@ -51,7 +52,7 @@ final class ItemSetCrawler
         while (!empty($this->resourcesToProcess)) {
             $resource = array_shift($this->resourcesToProcess);
             if (!isset($this->resourcesProcessed[$resource])) {
-                $this->getContent( $resource);
+                $this->getContent($resource);
                 $this->resourcesProcessed[$resource] = 1;
             }
         }
@@ -62,7 +63,7 @@ final class ItemSetCrawler
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->processContentBody( $response->getContent());
+            $this->processContentBody($response->getContent());
             return;
         }
 
@@ -79,7 +80,7 @@ final class ItemSetCrawler
     private function processContentBody($omekaItemAsJsonLD)
     {
         $omekaItem = json_decode($omekaItemAsJsonLD, true);
-        $this->processOmekaItem( $omekaItem);
+        $this->processOmekaItem($omekaItem);
     }
 
     private function getContentAndNextUri($url)
@@ -87,7 +88,7 @@ final class ItemSetCrawler
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->extractOmekaItems( $response->getContent());
+            $this->extractOmekaItems($response->getContent());
             return $this->getNextUri($response->getHeaders()->toString());
         }
 
@@ -105,7 +106,7 @@ final class ItemSetCrawler
     {
         $omekaItems = json_decode($jsonld_string, true);
         foreach ($omekaItems as $omekaItem) {
-            $this->processOmekaItem( $omekaItem);
+            $this->processOmekaItem($omekaItem);
         }
     }
 
@@ -161,14 +162,15 @@ final class ItemSetCrawler
     {
         try {
             $response =  (new Client($url))->send(); // replace by symfony PSR-7 http client?
-        } catch  (\Exception $e) {
+        } catch (\Exception $e) {
             $catched = true;
         }
 
         return $response;
     }
 
-    private function getRelatedUrisFromItem($omekaItem): array {
+    private function getRelatedUrisFromItem($omekaItem): array
+    {
         $result = [];
 
         foreach ($omekaItem as $key => $value) {

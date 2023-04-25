@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace LinkedDataSets\Application\Dto;
+
 final class DistributionDto
 {
     private string $format;
@@ -19,15 +20,18 @@ final class DistributionDto
         }
     }
 
-    public function getFilename():string {
+    public function getFilename(): string
+    {
         return $this->fileName;
     }
 
-    public function getFormat():string {
+    public function getFormat(): string
+    {
         return $this->format;
     }
 
-    public function getId(): int {
+    public function getId(): int
+    {
         return $this->id;
     }
 }

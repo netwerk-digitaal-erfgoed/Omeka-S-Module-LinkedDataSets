@@ -40,7 +40,8 @@ final class ApiManagerHelper
         return $templateId;
     }
 
-    public function getDatacatalogs() {
+    public function getDatacatalogs()
+    {
         $catalogResourceTemplateId = $this->getDatacatalogTemplateId();
 
         $data = ['resource_template_id' => [$catalogResourceTemplateId]];

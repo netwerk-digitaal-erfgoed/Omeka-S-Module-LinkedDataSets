@@ -27,8 +27,7 @@ final class CatalogDumpService
     public function __construct(
         LoggerInterface $logger,
         $viewHelperManager
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->serverUrl = $viewHelperManager->get('ServerUrl');
         if (!$this->serverUrl) {
@@ -87,7 +86,6 @@ final class CatalogDumpService
         $this->dumpSerialisedFiles($graph);
     }
 
-    // Maybe this step isn't needed, Bob said on 11th April.
     protected function removeOmekaTags(Graph $graph): void
     {
         foreach ($graph->resources() as $resource) {

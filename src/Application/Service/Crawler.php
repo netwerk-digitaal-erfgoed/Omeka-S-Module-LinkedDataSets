@@ -25,22 +25,22 @@ final class Crawler
             mkdir("nt.$this->item_set_id");
         }
 
-        $next = self::BASE_URL.'/api/items?item_set_id='. $this->item_set_id . '&per_page=100&sort_by=id&sort_order=asc&page='.$startpage;
+        $next = self::BASE_URL . '/api/items?item_set_id=' . $this->item_set_id . '&per_page=100&sort_by=id&sort_order=asc&page=' . $startpage;
 
         while (!empty($next)) {
-            $next = $this->get_content_and_next( $next);
+            $next = $this->get_content_and_next($next);
         }
 
         while (!empty($this->resources_todo)) {
             $resource = array_shift($this->resources_todo);
             if (!isset($this->resources_seen[$resource])) {
-                $this->get_content( $resource);
+                $this->get_content($resource);
                 $this->resources_seen[$resource] = 1;
             }
         }
     }
 
-    private function get_content( $url)
+    private function get_content($url)
     {
         error_log($url);
 
@@ -57,10 +57,10 @@ final class Crawler
         }
     }
 
-    private function process_content_body( $jsonld_string)
+    private function process_content_body($jsonld_string)
     {
         $json = json_decode($jsonld_string, true);
-        $this->process_omeka_item( $json);
+        $this->process_omeka_item($json);
     }
 
     private function get_content_and_next($url)
@@ -75,7 +75,7 @@ final class Crawler
             error_log("ERROR: 500 on $url");
             exit;
         } else {
-            $this->process_contents( $body);
+            $this->process_contents($body);
 
             return $this->get_next($headers);
         }
@@ -85,7 +85,7 @@ final class Crawler
     {
         $omekaItems = json_decode($jsonld_string, true);
         foreach ($omekaItems as $omekaItem) {
-            $this->process_omeka_item( $omekaItem);
+            $this->process_omeka_item($omekaItem);
         }
     }
 
@@ -99,7 +99,7 @@ final class Crawler
                 $omekaItem,
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
             );
-            preg_match_all('#'.self::BASE_URL.'\/[a-z_\-\/]+[0-9]+#', $jsonld_string, $linkedUris);
+            preg_match_all('#' . self::BASE_URL . '\/[a-z_\-\/]+[0-9]+#', $jsonld_string, $linkedUris);
 
             foreach ($linkedUris[0] as $linkedUri) {
                 if (!isset($this->resources_seen[$linkedUri])) {
@@ -147,7 +147,7 @@ final class Crawler
 
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
-            echo 'Error:'.curl_error($ch);
+            echo 'Error:' . curl_error($ch);
             exit();
         }
 

@@ -6,5 +6,4 @@ namespace LinkedDataSets\Infrastructure\Exception;
 
 final class CatalogResourceTemplateDoesNotExists extends \Exception
 {
-
 }

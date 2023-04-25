@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /*
  * Copyright Daniel Berthereau, 2018-2023
  *
@@ -315,8 +318,10 @@ class InstallResources
             // namespace are mixed. So, the last character ("#" or "/") is
             // skipped for easier management.
             if (rtrim($vocabularyRepresentation->namespaceUri(), '#/') === rtrim($vocabularyData['vocabulary']['o:namespace_uri'], '#/')) {
-                $message = new Message('The vocabulary "%s" was already installed and was kept.', // @translate
-                    $vocabularyData['vocabulary']['o:label']);
+                $message = new Message(
+                    'The vocabulary "%s" was already installed and was kept.', // @translate
+                    $vocabularyData['vocabulary']['o:label']
+                );
                 $messenger = $this->services->get('ControllerPluginManager')->get('messenger');
                 $messenger->addWarning($message);
                 return false;
@@ -475,7 +480,8 @@ class InstallResources
                 continue;
             }
             foreach ($members as $oldLocalName => $newLocalName) {
-                if ($oldLocalName === $newLocalName
+                if (
+                    $oldLocalName === $newLocalName
                     || empty($membersByLocalName[$name][$oldLocalName])
                     || empty($membersByLocalName[$name][$newLocalName])
                 ) {
@@ -520,8 +526,11 @@ SQL;
             }
             $hasReplace = true;
             // TODO Ideally, anywhere this option is used in the setting should be updated too.
-            $message = new Message('The following "%1$s" of the vocabulary "%2$s" were replaced: %3$s', // @translate
-                $name, $vocabularyData['vocabulary']['o:label'], json_encode($members, 448)
+            $message = new Message(
+                'The following "%1$s" of the vocabulary "%2$s" were replaced: %3$s', // @translate
+                $name,
+                $vocabularyData['vocabulary']['o:label'],
+                json_encode($members, 448)
             );
             $messenger->addWarning($message);
         }
@@ -662,7 +671,8 @@ SQL;
 
         // Manage core data types and common modules ones.
         $getKnownDataType = function ($dataTypeNameLabel) use ($api): ?string {
-            if (in_array($dataTypeNameLabel['name'], [
+            if (
+                in_array($dataTypeNameLabel['name'], [
                 'literal',
                 'resource',
                 'resource:item',
@@ -690,7 +700,7 @@ SQL;
                 'numeric:integer',
                 'numeric:duration',
                 'numeric:interval',
-            ])
+                ])
                 || mb_substr((string) $dataTypeNameLabel['name'], 0, 13) === 'valuesuggest:'
                 || mb_substr((string) $dataTypeNameLabel['name'], 0, 16) === 'valuesuggestall:'
             ) {
@@ -748,7 +758,8 @@ SQL;
                     // Check the deprecated "data_type_name" if needed and
                     // normalize it.
                     if (!array_key_exists('data_types', $import['o:resource_template_property'][$key])) {
-                        if (!empty($import['o:resource_template_property'][$key]['data_type_name'])
+                        if (
+                            !empty($import['o:resource_template_property'][$key]['data_type_name'])
                             && !empty($import['o:resource_template_property'][$key]['data_type_label'])
                         ) {
                             $import['o:resource_template_property'][$key]['data_types'] = [[
