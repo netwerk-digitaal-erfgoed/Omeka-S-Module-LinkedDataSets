@@ -2,40 +2,6 @@
     "o:label": "LDS Distribution",
     "o:resource_template_property": [
         {
-            "o:alternate_label": "Inhouds-URL",
-            "o:alternate_comment": "The URL where the distribution can be directly accessed.",
-            "o:is_required": true,
-            "o:is_private": false,
-            "o:default_lang": null,
-            "data_types": [
-                {
-                    "name": "uri",
-                    "label": "URI"
-                }
-            ],
-            "vocabulary_namespace_uri": "https:\/\/schema.org\/",
-            "vocabulary_label": "Schema.org",
-            "local_name": "contentUrl",
-            "label": "contentUrl"
-        },
-        {
-            "o:alternate_label": "Coderingsformaat",
-            "o:alternate_comment": "The distribution\u2019s MIME format.",
-            "o:is_required": true,
-            "o:is_private": false,
-            "o:default_lang": null,
-            "data_types": [
-                {
-                    "name": "customvocab:2",
-                    "label": "LDS Media Types"
-                }
-            ],
-            "vocabulary_namespace_uri": "https:\/\/schema.org\/",
-            "vocabulary_label": "Schema.org",
-            "local_name": "encodingFormat",
-            "label": "encodingFormat"
-        },
-        {
             "o:alternate_label": "Naam",
             "o:alternate_comment": "Name of the distribution, depicting the type of distribution.",
             "o:is_required": false,
@@ -58,6 +24,40 @@
             "vocabulary_label": "Schema.org",
             "local_name": "description",
             "label": "description"
+        },
+        {
+            "o:alternate_label": "Coderingsformaat",
+            "o:alternate_comment": "The distribution\u2019s MIME format.",
+            "o:is_required": true,
+            "o:is_private": false,
+            "o:default_lang": null,
+            "data_types": [
+                {
+                    "name": "customvocab:1",
+                    "label": "LDS Media Types"
+                }
+            ],
+            "vocabulary_namespace_uri": "https:\/\/schema.org\/",
+            "vocabulary_label": "Schema.org",
+            "local_name": "encodingFormat",
+            "label": "encodingFormat"
+        },
+        {
+            "o:alternate_label": "Inhouds-URL",
+            "o:alternate_comment": "The URL where the distribution can be directly accessed.",
+            "o:is_required": true,
+            "o:is_private": false,
+            "o:default_lang": null,
+            "data_types": [
+                {
+                    "name": "uri",
+                    "label": "URI"
+                }
+            ],
+            "vocabulary_namespace_uri": "https:\/\/schema.org\/",
+            "vocabulary_label": "Schema.org",
+            "local_name": "contentUrl",
+            "label": "contentUrl"
         },
         {
             "o:alternate_label": "Publicatiedatum",
@@ -101,7 +101,7 @@
             "o:default_lang": null,
             "data_types": [
                 {
-                    "name": "customvocab:11",
+                    "name": "customvocab:2",
                     "label": "LDS IETF Language Tags"
                 }
             ],
@@ -118,8 +118,8 @@
             "o:default_lang": null,
             "data_types": [
                 {
-                    "name": "customvocab:1",
-                    "label": "LDS Licenses"
+                    "name": "customvocab:3",
+                    "label": "LDS licenses"
                 }
             ],
             "vocabulary_namespace_uri": "https:\/\/schema.org\/",
