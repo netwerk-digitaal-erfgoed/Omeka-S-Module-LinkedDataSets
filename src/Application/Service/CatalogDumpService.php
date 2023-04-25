@@ -13,7 +13,6 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 
 final class CatalogDumpService
 {
-    // in php 8.1 convert to enum
     const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
@@ -67,8 +66,8 @@ final class CatalogDumpService
             $publishers = $resource->allResources("schema:publisher");
 
             foreach ($publishers as $publisher) {
-                $publisher_uri = $publisher->getUri();
-                $graph->parse($publisher_uri, 'jsonld');
+                $publisherUri = $publisher->getUri();
+                $graph->parse($publisherUri, 'jsonld');
             }
 
             $creators = $resource->allResources("schema:creator");
