@@ -9,6 +9,7 @@ use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use LinkedDataSets\Application\Job\TestJob;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\ResourceTemplateRepresentation;
@@ -113,13 +114,13 @@ final class Module extends GenericModule
     {
         $sharedEventManager->attach(
             ItemAdapter::class,
-            'api.update.pre', // Do we need to get the pre or post events?
+            'api.update.post', // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
 
         $sharedEventManager->attach(
             ItemAdapter::class,
-            'api.create.pre', // Do we need to get the pre or post events?
+            'api.create.post', // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
     }
@@ -128,7 +129,9 @@ final class Module extends GenericModule
     {
         $request = $event->getParam('request');
         $this->api = $this->getServiceLocator()->get('Omeka\ApiManager');
+        /** @var Dispatcher $dispatcher */
         $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
+
         $resource = $request->getResource();
         $id = $request->getId();
         $response = $this->api->read($resource, $id);
@@ -157,4 +160,6 @@ final class Module extends GenericModule
                     Synchronous::class));
         }
     }
+
+
 }
