@@ -114,13 +114,13 @@ final class Module extends GenericModule
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
         $sharedEventManager->attach(
-            '*',
+            Item::class,
             'entity.update.post',  // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
 
         $sharedEventManager->attach(
-            '*',
+            Item::class,
             'entity.persist.post', // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
