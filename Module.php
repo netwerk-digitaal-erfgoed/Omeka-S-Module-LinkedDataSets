@@ -9,10 +9,11 @@ use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use LinkedDataSets\Application\Job\TestJob;
 use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Api\Representation\ResourceTemplateRepresentation;
+use Omeka\Db\Event\Subscriber\Entity;
+use Omeka\Entity\Item;
 use Omeka\Job\Dispatcher;
 use Omeka\Job\DispatchStrategy\Synchronous;
 use Omeka\Module\Exception\ModuleCannotInstallException;
@@ -113,34 +114,33 @@ final class Module extends GenericModule
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
         $sharedEventManager->attach(
-            ItemAdapter::class,
-            'api.update.post', // Do we need to get the pre or post events?
+            '*',
+            'entity.update.post',  // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
 
         $sharedEventManager->attach(
-            ItemAdapter::class,
-            'api.create.post', // Do we need to get the pre or post events?
+            '*',
+            'entity.persist.post', // Do we need to get the pre or post events?
             [$this, 'dispatchJobs']
         );
     }
 
     public function dispatchJobs(Event $event): void
     {
-        $request = $event->getParam('request');
-        $this->api = $this->getServiceLocator()->get('Omeka\ApiManager');
-        /** @var Dispatcher $dispatcher */
-        $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
+        $entity = $event->getTarget();
 
-        $resource = $request->getResource();
-        $id = $request->getId();
-        $response = $this->api->read($resource, $id);
-        /** @var ItemRepresentation $content */
+        if (! $entity instanceof Item) {
+            return;
+        }
+
+        $this->api = $this->getServiceLocator()->get('Omeka\ApiManager');
+        $dispatcher = $this->serviceLocator->get('Omeka\Job\Dispatcher');
+        $id = $entity->getId();
+        $response = $this->api->read('items', $id);
         $content = $response->getContent();
-        /** @var ResourceTemplateRepresentation $resourceTemplate */
         $resourceTemplate = $content->resourceTemplate();
         $label = $resourceTemplate->label();
-
         $useBackground = true; // later in config?
 
         if (
@@ -160,6 +160,4 @@ final class Module extends GenericModule
                     Synchronous::class));
         }
     }
-
-
 }
