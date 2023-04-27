@@ -9,7 +9,6 @@ use Laminas\View\Helper\ServerUrl;
 
 final class UriHelper
 {
-
     private $viewHelperManager;
 
     private $serverUrl;
@@ -24,12 +23,12 @@ final class UriHelper
         $this->basePath = $viewHelperManager->get('BasePath');
     }
 
-    public function constructUri(): string {
+    public function constructUri(): string
+    {
         $basePath = $this->basePath;
 
         return $this->serverUrl->getScheme() .
             '://' . $this->serverUrl->getHost() .
             $basePath();
     }
-
 }
