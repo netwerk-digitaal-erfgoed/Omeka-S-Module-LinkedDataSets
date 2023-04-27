@@ -22,7 +22,7 @@ final class DistributionService
         }
 
         foreach ($distributionItems as $distributionItem) {
-            $newGraph = $graph::newAndLoad($distributionItem->getUri());
+            $newGraph = $graph::newAndLoad($distributionItem->getUri(), 'jsonld');
 
             $format = $newGraph
                 ->getLiteral($distributionItem->getUri(), 'schema:encodingFormat')
