@@ -10,6 +10,7 @@ use Laminas\Http\Response;
 use Laminas\Uri\Http;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Psr\Container\ContainerInterface;
 
 final class ItemSetCrawler
 {
@@ -25,15 +26,17 @@ final class ItemSetCrawler
     private $serverUrl;
     private $baseUrl;
 
-    public function __construct()
+    public function __construct(ContainerInterface $serviceLocator)
     {
+        $this->serviceLocator = $serviceLocator;
+        $this->baseUrl = $this->serviceLocator->get('LDS\UriHelper')->constructUri();
     }
-    public function crawl($itemSetId, $folder, $serverUrl): void
+    public function crawl($itemSetId, $folder): void
     {
         $this->itemSetId = $itemSetId;
         $this->folder = $folder;
-        $this->serverUrl = $serverUrl;
-        $this->baseUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost();
+//        $this->serverUrl = $serverUrl;
+//        $this->baseUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost();
 
         $startpage = 1;
 

@@ -21,23 +21,23 @@ final class CatalogDumpService
     ];
 
     protected ?Logger $logger = null;
-    protected $serverUrl;
+    protected $uriHelper;
     protected $id;
     public function __construct(
         LoggerInterface $logger,
-        $viewHelperManager
+        $uriHelper
     ) {
         $this->logger = $logger;
-        $this->serverUrl = $viewHelperManager->get('ServerUrl');
-        if (!$this->serverUrl) {
-            throw new ServiceNotFoundException('The serverUrl service is not found');
+        $this->uriHelper = $uriHelper;
+        if (!$this->uriHelper) {
+            throw new ServiceNotFoundException('The UriHelper service is not found');
         }
     }
 
     public function dumpCatalog(int $id): void
     {
         $this->id = $id;
-        $apiUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . "/api/items/{$this->id}";
+        $apiUrl = $this->uriHelper->constructUri() . "/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');

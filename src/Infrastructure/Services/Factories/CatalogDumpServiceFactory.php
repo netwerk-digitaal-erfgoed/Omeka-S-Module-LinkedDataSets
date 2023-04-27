@@ -12,7 +12,7 @@ class CatalogDumpServiceFactory implements FactoryInterface
     {
         return new CatalogDumpService(
             $serviceLocator->get('Omeka\Logger'),
-            $serviceLocator->get('ViewHelperManager'),
+            $serviceLocator->get('LDS\UriHelper'),
         );
     }
 }

@@ -32,9 +32,9 @@ final class DataDumpJob extends AbstractJob
     ];
 
     protected ?Logger $logger = null;
-    protected $serverUrl;
     protected $id;
     protected ?Manager $api;
+    protected $uriHelper;
     protected ?DistributionService $distributionService;
     protected ?ItemSetCrawler $itemSetCrawler;
     protected ?FileCompressionService $compressionService;
@@ -46,9 +46,9 @@ final class DataDumpJob extends AbstractJob
         if (!$this->logger) {
             throw new ServiceNotFoundException('The logger service is not found');
         }
-        $this->serverUrl = $serviceLocator->get('ViewHelperManager')?->get('ServerUrl');
-        if (!$this->serverUrl) {
-            throw new ServiceNotFoundException('The serverUrl service is not found');
+        $this->uriHelper = $serviceLocator->get('LDS\UriHelper');
+        if (!$this->uriHelper) {
+            throw new ServiceNotFoundException('The UriHelper service is not found');
         }
         $this->id = $this->getArg('id');
         if (!$this->id) {
@@ -82,7 +82,7 @@ final class DataDumpJob extends AbstractJob
      */
     public function perform(): void
     {
-        $apiUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . "/api/items/{$this->id}";
+        $apiUrl = $this->uriHelper->constructUri() . "/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
@@ -118,7 +118,7 @@ final class DataDumpJob extends AbstractJob
 
         foreach ($itemSets as $itemSet) {
             $item_set_id = $this->getIdFromPath($itemSet->getUri());
-            $this->itemSetCrawler->crawl($item_set_id, $folder, $this->serverUrl);
+            $this->itemSetCrawler->crawl($item_set_id, $folder);
         }
 
         $mergedFile = $this->mergeTriples($folder);
@@ -147,8 +147,7 @@ final class DataDumpJob extends AbstractJob
             }
         }
         $size = (new \SplFileInfo($endFile))->getSize();
-        $uri = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost() . '/files/datadumps/' . $endFile;
-
+        $uri = $this->uriHelper->constructUri() . '/files/datadumps/' . $endFile;
         // todo update distributie
     }
 
