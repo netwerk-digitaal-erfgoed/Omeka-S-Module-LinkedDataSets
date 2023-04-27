@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace LinkedDataSets;
 
-use LinkedDataSets\Application\Job\DataDumpJob;
-use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
+use Generic\AbstractModule as GenericModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Omeka\Api\Adapter\ItemAdapter;
-use Omeka\Api\Representation\ItemRepresentation;
-use Omeka\Api\Representation\ResourceTemplateRepresentation;
-use Omeka\Db\Event\Subscriber\Entity;
+use LinkedDataSets\Application\Job\DataDumpJob;
+use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Omeka\Entity\Item;
 use Omeka\Job\Dispatcher;
 use Omeka\Job\DispatchStrategy\Synchronous;
@@ -26,7 +23,6 @@ if (!class_exists(\Generic\AbstractModule::class)) {
         ? dirname(__DIR__) . '/Generic/AbstractModule.php'
         : __DIR__ . '/src/Generic/AbstractModule.php';
 }
-use Generic\AbstractModule as GenericModule;
 
 final class Module extends GenericModule
 {
