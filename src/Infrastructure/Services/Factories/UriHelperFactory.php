@@ -3,7 +3,6 @@
 namespace LinkedDataSets\Infrastructure\Services\Factories;
 
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use LinkedDataSets\Infrastructure\Helpers\ApiManagerHelper;
 use LinkedDataSets\Infrastructure\Helpers\UriHelper;
 use Psr\Container\ContainerInterface;
 
