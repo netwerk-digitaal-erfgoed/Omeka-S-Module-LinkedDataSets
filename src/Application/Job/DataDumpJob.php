@@ -107,7 +107,7 @@ final class DataDumpJob extends AbstractJob
             return;
         }
 
-        $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
+        $itemSets = $graph->resourcesMatching("^schema:isBasedOn");
 
         if (!$itemSets) {
             $this->logger->info(
