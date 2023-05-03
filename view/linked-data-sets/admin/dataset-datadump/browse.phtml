@@ -25,22 +25,22 @@ $userIsAllowedCrawl=true;
 <?php if ($datasets): ?>
 
 <form method='post' id="batch-form" class="disable-unsaved-warning">
-<div class="batch-inputs">
-    <select class="batch-actions-select" name="batch_action" aria-label="<?= $translate('Batch actions') ?>">
-        <option value="default"><?= $translate('Batch actions') ?></option>
-        <?php if ($userIsAllowedCrawl): ?>
-        <option value="crawl-selected" class="batch-selected"><?= $translate('Crawl selected') ?></option>
-        <option value="crawl-all" disabled="disabled"><?= $translate('Crawl all') ?></option>
-        <?php endif; ?>
-    </select>
-    <div class="batch-actions">
-        <button type="button" class="default active" disabled="disabled"><?= $translate('Go') ?></button>
-        <?php if ($userIsAllowedCrawl): ?>
-        <a class="crawl button sidebar-content crawl-selected" data-sidebar-selector="#sidebar-crawl-selected"><?= $translate('Go') ?></a>
-        <a class="crawl button sidebar-content crawl-all" data-sidebar-selector="#sidebar-crawl-all"><?= $translate('Go') ?></a>
-        <?php endif; ?>
+    <div class="batch-inputs">
+        <select class="batch-actions-select" name="batch_action" aria-label="<?= $translate('Batch actions') ?>">
+            <option value="default"><?= $translate('Batch actions') ?></option>
+            <?php if ($userIsAllowedCrawl): ?>
+            <option value="crawl-selected" class="batch-selected"><?= $translate('Crawl selected') ?></option>
+            <option value="crawl-all" disabled="disabled"><?= $translate('Crawl all') ?></option>
+            <?php endif; ?>
+        </select>
+        <div class="batch-actions">
+            <button type="button" class="default active" disabled="disabled"><?= $translate('Go') ?></button>
+            <?php if ($userIsAllowedCrawl): ?>
+            <a class="crawl button sidebar-content crawl-selected" data-sidebar-selector="#sidebar-crawl-selected"><?= $translate('Go') ?></a>
+            <a class="crawl button sidebar-content crawl-all" data-sidebar-selector="#sidebar-crawl-all"><?= $translate('Go') ?></a>
+            <?php endif; ?>
+        </div>
     </div>
-</div>
 
     <table class="tablesaw batch-edit" data-tablesaw-mode="stack">
         <thead>
@@ -50,24 +50,25 @@ $userIsAllowedCrawl=true;
                 <input type="checkbox" class="select-all">
                 <?php endif; ?><?php echo $this->translate('Label'); ?></th>
                 <th><?php echo $this->translate('Last modified'); ?></th>
+                <th><?php echo $this->translate('Datadumps'); ?></th>
                 <th><?php echo $this->translate('Actions'); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($datasets as $dataset): ?>
-    
             <tr>
                 <td><?php if ($userIsAllowedCrawl): ?>
                 <input type="checkbox" name="resource_ids[]" value="<?= $dataset->id() ?>"<?php if (!$userIsAllowedCrawl): ?> disabled="disabled"<?php endif; ?>>
                 <?php endif; ?>
                 
-                TODO <?= $dataset->id(); ?>
+                TODO naam dataset <?= $dataset->id(); ?>
                 </td>
-                <td>TODO</td>
+                <td>TODO datum laatste datadump</td>
+                <td>TODO aantal datadump (=distributie on ondersteund formaat)</td>
                 <td><?php 
-                #TODO, hyperlink op de juiste manier maken...
-                #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
-                echo $this->hyperlink('', 'item/'.$dataset->id().'/edit', ['class' => 'o-icon-edit']); 
+                    #TODO, hyperlink op de juiste manier maken...
+                    #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
+                    echo $this->hyperlink('', '../../item/'.$dataset->id().'/edit', ['class' => 'o-icon-edit']); 
                 ?></td>
             </tr>
             <?php endforeach; ?>
