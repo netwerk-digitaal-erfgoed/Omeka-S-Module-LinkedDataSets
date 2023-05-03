@@ -148,12 +148,13 @@ final class Module extends GenericModule
                 ? $dispatcher->dispatch(RecreateDataCatalogsJob::class, []) // async
                 : $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(Synchronous::class));
         }
-
+/*
         if ($label === 'LDS Dataset') { // Don't know if this is the best way?
             $job = $useBackground
                 ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
                 : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(
                     Synchronous::class));
         }
+*/        
     }
 }

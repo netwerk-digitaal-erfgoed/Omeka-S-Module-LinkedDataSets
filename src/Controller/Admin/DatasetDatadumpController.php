@@ -7,33 +7,57 @@ use Log\Stdlib\PsrMessage;
 use Omeka\Form\ConfirmForm;
 use LinkedDataSets\Application\Job\DataDumpJob;
 
-class DistributionTemplateController extends AbstractActionController
+class DatasetDatadumpController extends AbstractActionController
 {
+
+    private const DATASET_LABEL = 'LDS Dataset';  # TODO naar ApiManagerHelper ?
 
     public function browseAction()
     {
-        # TODO: id van de LDS Distribution resource class / of resource template opzoeken ipv harcoded 1604
+        # TODO naar ApiManagerHelper ?
 
-        $ldsDistributions = $this->api()->search('items', ['resource_class_id'=>1604,'sort_by' => 'modified', 'sort_order' => 'desc'])->getContent();
+        $templates = $this->api()->search('resource_templates')->getContent();
 
-        
+        foreach ($templates as $template) {
+            if ($template->label() === self::DATASET_LABEL) {
+                $catalogResourceTemplateId = $template->id();
+                break;
+            }
+        }
+
+        if (!$catalogResourceTemplateId) {
+            throw new CatalogResourceTemplateDoesNotExists(
+                'There\'s no resource template for LDS Datasets'
+            );
+        }
+
+        $data = ['resource_template_id' => [$catalogResourceTemplateId]];
+
+        # TODO - nu overzicht van alle datasets, maar moet een overzicht worden van datasets die een schema:isBasedOn (itemset) hebben
+        #        en gedefinieerde distributie in ondersteund formaat
+        $datasets =  $this->api()
+            ->search('items', $data)
+            ->getContent();
+
+        # TODO einde naar ApiManagerHelper ?
+
         $formCrawlSelected = $this->getForm(ConfirmForm::class);
         $formCrawlSelected
-            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets-template', ['action' => 'crawl-distribution-selected'], true))
+            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets', ['action' => 'crawl-distribution-selected'], true))
             ->setAttribute('id', 'confirm-crawl-selected');
         $formCrawlSelected
             ->setButtonLabel('Confirm crawl'); // @translate
 
         $formCrawlAll= $this->getForm(ConfirmForm::class);
         $formCrawlAll
-            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets-template', ['action' => 'crawl-distribution-all'], true))
+            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets', ['action' => 'crawl-distribution-all'], true))
             ->setAttribute('id', 'confirm-crawl-all')
             ->get('submit')->setAttribute('disabled', true);
         $formCrawlAll
             ->setButtonLabel('Confirm crawl'); // @translate
 
         $view = new ViewModel;
-        $view->setVariable('ldsDistributions', $ldsDistributions);
+        $view->setVariable('datasets', $datasets);
         $view->setVariable('formCrawlAll', $formCrawlAll);
         $view->setVariable('formCrawlSelected', $formCrawlSelected);
         return $view;

@@ -7,20 +7,22 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $this->headScript()->appendFile($assetUrl('js/linked-data-sets.js', 'LinkedDataSets'), 'text/javascript', ['defer' => 'defer']);
 
-#TODO, alleen voor Admin, zie implementatie in Log module
-#$userIsAllowedCrawl = $this->userIsAllowed(\Log\Api\Adapter\LogAdapter::class, 'crawl_distribution');
+#$auth = $this->getServiceLocator()->get('Omeka\AuthenticationService');
+#$acl = $this->getServiceLocator()->get('Omeka\Acl');
+#$identity = $auth->getIdentity();
+#$userIsAllowedCrawl=$acl->isAdminRole($identity->getRole());
 
 $userIsAllowedCrawl=true;
 
 ?>
 
-<?php echo $this->pageTitle($this->translate('LDS Distributions'), 1, $this->translate('Linked Data Sets')); ?>
+<?php echo $this->pageTitle($this->translate('LDS Datasets'), 1, $this->translate('Linked Data Sets')); ?>
 
 <div class="breadcrumbs">
-    <?php echo $this->translate('Overzicht van LDS Distributions'); ?>
+    <?php echo $this->translate('Overzicht van LDS datasets with LDS distributions'); ?>
 </div>
 
-<?php if ($ldsDistributions): ?>
+<?php if ($datasets): ?>
 
 <form method='post' id="batch-form" class="disable-unsaved-warning">
 <div class="batch-inputs">
@@ -52,20 +54,20 @@ $userIsAllowedCrawl=true;
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($ldsDistributions as $distribution): ?>
+            <?php foreach ($datasets as $dataset): ?>
     
             <tr>
                 <td><?php if ($userIsAllowedCrawl): ?>
-                <input type="checkbox" name="resource_ids[]" value="<?= $distribution->id() ?>"<?php if (!$userIsAllowedCrawl): ?> disabled="disabled"<?php endif; ?>>
+                <input type="checkbox" name="resource_ids[]" value="<?= $dataset->id() ?>"<?php if (!$userIsAllowedCrawl): ?> disabled="disabled"<?php endif; ?>>
                 <?php endif; ?>
                 
-                TODO <?= $distribution->id(); ?>
+                TODO <?= $dataset->id(); ?>
                 </td>
                 <td>TODO</td>
                 <td><?php 
                 #TODO, hyperlink op de juiste manier maken...
                 #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
-                echo $this->hyperlink('', '../../item/'.$distribution->id().'/edit', ['class' => 'o-icon-edit']); 
+                echo $this->hyperlink('', 'item/'.$dataset->id().'/edit', ['class' => 'o-icon-edit']); 
                 ?></td>
             </tr>
             <?php endforeach; ?>
@@ -74,7 +76,7 @@ $userIsAllowedCrawl=true;
 </form>
 <?php else: ?>
 <div class="no-distributions">
-    <p><?php echo $this->translate('No LDS Distributions found.'); ?></p>
+    <p><?php echo $this->translate('No LDS datasets with distributions found.'); ?></p>
 </div>
 <?php endif; ?>
 

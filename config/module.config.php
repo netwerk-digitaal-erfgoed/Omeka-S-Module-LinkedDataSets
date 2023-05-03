@@ -43,7 +43,7 @@ return [
             'LinkedDataSets\Controller\Admin\Index' => Controller\Admin\IndexController::class,
         ],
         'factories' => [
-            'LinkedDataSets\Controller\Admin\DistributionTemplate' => Service\Controller\Admin\DistributionTemplateControllerFactory::class,
+            'LinkedDataSets\Controller\Admin\DatasetDatadump' => Service\Controller\Admin\DatasetDatadumpControllerFactory::class,
         ],
     ],
     'navigation' => [
@@ -86,13 +86,13 @@ return [
                     'linked-data-sets-template' => [
                         'type' => Http\Segment::class,
                         'options' => [
-                            'route' => '/linked-data-sets/distribution-template/:action',
+                            'route' => '/linked-data-sets/dataset-datadump-template/:action',
                             'constraints' => [
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                             ],
                             'defaults' => [
                                 '__NAMESPACE__' => 'LinkedDataSets\Controller\Admin',
-                                'controller' => 'distribution-template',
+                                'controller' => 'dataset-datadump',
                                 'action' => 'browse',
                             ],
                         ],
