@@ -1,0 +1,43 @@
+<?php
+$plugins = $this->getHelperPluginManager();
+$translate = $plugins->get('translate');
+$hyperlink = $plugins->get('hyperlink');
+$assetUrl = $plugins->get('assetUrl');
+$escapeAttr = $plugins->get('escapeHtmlAttr');
+
+?>
+
+<?php echo $this->pageTitle($this->translate('Datacatalogs'), 1, $this->translate('Linked Data Sets')); ?>
+
+<p><?php echo $this->translate('Overview of LDS datacatalogs and the URLs of the generated datacatalog.'); ?></p>
+
+<?php if ($datacatalogs): ?>
+    <table style="table-layout: auto" class="tablesaw batch-edit" data-tablesaw-mode="stack">
+        <thead>
+            <tr>
+                <th><?php echo $this->translate('Label'); ?></th>
+                <th><?php echo $this->translate('URL'); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($datacatalogs as $datacatalog): ?>
+            <tr>
+                <td><?= $datacatalog->title(); ?> <?php 
+                    #TODO, hyperlink op de juiste manier maken...
+                    #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
+                    echo $this->hyperlink('', '../item/'.$datacatalog->id().'/edit', ['class' => 'o-icon-edit']); 
+                ?></td>
+                <td><a href="<?= $baseUrl ?>datacatalog-<?= $datacatalog->id() ?>.jsonld"><?= $baseUrl ?>datacatalog-<?= $datacatalog->id() ?>.jsonld</a> /
+                <a href="<?= $baseUrl ?>datacatalog-<?= $datacatalog->id() ?>.ttl">.ttl</a> /
+                <a href="<?= $baseUrl ?>datacatalog-<?= $datacatalog->id() ?>.nt">.nt</a> /
+                <a href="<?= $baseUrl ?>datacatalog-<?= $datacatalog->id() ?>.xml">.xml</a></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</form>
+<?php else: ?>
+<div>
+    <p><?php echo $this->translate('No LDS datacatalogs found.'); ?></p>
+</div>
+<?php endif; ?>

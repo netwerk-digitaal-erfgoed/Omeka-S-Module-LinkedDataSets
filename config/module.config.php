@@ -10,6 +10,9 @@ use LinkedDataSets\Infrastructure\Services\Factories\DistributionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\FileCompressionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\ItemSetCrawlerFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\UriHelperFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\LinkedDataSetsFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\DatasetDatadumpControllerFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\DatacatalogControllerFactory;
 
 return [
     'service_manager' => [
@@ -20,7 +23,7 @@ return [
             'LDS\ApiManagerHelper' => ApiManagerHelperFactory::class,
             'LDS\UriHelper' => UriHelperFactory::class,
             'LDS\CatalogDumpService' => CatalogDumpServiceFactory::class,
-            'LinkedDataSets\LinkedDataSets' => Service\Stdlib\LinkedDataSetsFactory::class,
+            'LDS\LinkedDataSets' => LinkedDataSetsFactory::class,
         ]
     ],
     'dependencies' => [
@@ -43,26 +46,27 @@ return [
             'LinkedDataSets\Controller\Admin\Index' => Controller\Admin\IndexController::class,
         ],
         'factories' => [
-            'LinkedDataSets\Controller\Admin\DatasetDatadump' => Service\Controller\Admin\DatasetDatadumpControllerFactory::class,
+            'LinkedDataSets\Controller\Admin\DatasetDatadump' => DatasetDatadumpControllerFactory::class,
+            'LinkedDataSets\Controller\Admin\Datacatalog' => DatacatalogControllerFactory::class,
         ],
     ],
     'navigation' => [
         'AdminModule' => [
             [
-                'label' => 'Linked Data Sets', // @translate
+                'label' => 'Linked Data Sets',
                 'route' => 'admin/linked-data-sets',
-                'controller' => 'index',
-                'action' => 'index',
                 'resource' => 'LinkedDataSets\Controller\Admin\Index',
-                'useRouteMatch' => true,
+                'class' => 'linked-data-sets',
                 'pages' => [
                     [
-                        'route' => 'admin/linked-data-sets-template',
-                        'visible' => false,
+                        'label' => 'Datacatalogs',
+                        'route' => 'admin/linked-data-sets/datacatalogs',
+                        'resource' => 'LinkedDataSets\Controller\Admin\Datacatalog',
                     ],
                     [
-                        'route' => 'admin/linked-data-sets-template/id',
-                        'visible' => false,
+                        'label' => 'Dataset datadumps',
+                        'route' => 'admin/linked-data-sets/dataset-datadumps',
+                        'resource' => 'LinkedDataSets\Controller\Admin\DatasetDatadump',
                     ],
                 ],
             ],
@@ -73,7 +77,7 @@ return [
             'admin' => [
                 'child_routes' => [
                     'linked-data-sets' => [
-                        'type' => Http\Literal::class,
+                        'type' => 'Literal',
                         'options' => [
                             'route' => '/linked-data-sets',
                             'defaults' => [
@@ -82,32 +86,34 @@ return [
                                 'action' => 'index',
                             ],
                         ],
-                    ],
-                    'linked-data-sets-template' => [
-                        'type' => Http\Segment::class,
-                        'options' => [
-                            'route' => '/linked-data-sets/dataset-datadump-template/:action',
-                            'constraints' => [
-                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            ],
-                            'defaults' => [
-                                '__NAMESPACE__' => 'LinkedDataSets\Controller\Admin',
-                                'controller' => 'dataset-datadump',
-                                'action' => 'browse',
-                            ],
-                        ],
-                        'may_terminate' => true,
                         'child_routes' => [
-                            'id' => [
+                            'dataset-datadumps' => [
                                 'type' => Http\Segment::class,
                                 'options' => [
-                                    'route' => '/:id',
+                                    'route' => '/dataset-datadumps/:action',
                                     'constraints' => [
-                                        'id' => '\d+',
+                                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                    ],
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'LinkedDataSets\Controller\Admin',
+                                        'controller' => 'dataset-datadump',
+                                        'action' => 'browse',
+                                    ],
+                                ],
+                            ],
+                            'datacatalogs' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/datacatalogs',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'LinkedDataSets\Controller\Admin',
+                                        'controller' => 'datacatalog',
+                                        'action' => 'browse',
                                     ],
                                 ],
                             ],
                         ],
+                        'may_terminate' => true,
                     ],
                 ],
             ],

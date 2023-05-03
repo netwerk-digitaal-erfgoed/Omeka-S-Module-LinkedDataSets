@@ -7,20 +7,19 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $this->headScript()->appendFile($assetUrl('js/linked-data-sets.js', 'LinkedDataSets'), 'text/javascript', ['defer' => 'defer']);
 
-#$auth = $this->getServiceLocator()->get('Omeka\AuthenticationService');
-#$acl = $this->getServiceLocator()->get('Omeka\Acl');
-#$identity = $auth->getIdentity();
-#$userIsAllowedCrawl=$acl->isAdminRole($identity->getRole());
+# TODO - het initiëren van een DataDump is alleen toegestaand als gebruiker een Admin is 
+# $auth = $this->getServiceLocator()->get('Omeka\AuthenticationService');
+# $acl = $this->getServiceLocator()->get('Omeka\Acl');
+# $identity = $auth->getIdentity();
+# $userIsAllowedCrawl=$acl->isAdminRole($identity->getRole());
 
 $userIsAllowedCrawl=true;
 
 ?>
 
-<?php echo $this->pageTitle($this->translate('LDS Datasets'), 1, $this->translate('Linked Data Sets')); ?>
+<?php echo $this->pageTitle($this->translate('Datasets datadumps'), 1, $this->translate('Linked Data Sets')); ?>
 
-<div class="breadcrumbs">
-    <?php echo $this->translate('Overzicht van LDS datasets with LDS distributions'); ?>
-</div>
+<p><?php echo $this->translate('Overview of LDS datasets which are based on an Itemset and have one or more RDF based distributions (=datadump).'); ?></p>
 
 <?php if ($datasets): ?>
 
@@ -51,7 +50,6 @@ $userIsAllowedCrawl=true;
                 <?php endif; ?><?php echo $this->translate('Label'); ?></th>
                 <th><?php echo $this->translate('Last modified'); ?></th>
                 <th><?php echo $this->translate('Datadumps'); ?></th>
-                <th><?php echo $this->translate('Actions'); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -60,24 +58,22 @@ $userIsAllowedCrawl=true;
                 <td><?php if ($userIsAllowedCrawl): ?>
                 <input type="checkbox" name="resource_ids[]" value="<?= $dataset->id() ?>"<?php if (!$userIsAllowedCrawl): ?> disabled="disabled"<?php endif; ?>>
                 <?php endif; ?>
-                
-                TODO naam dataset <?= $dataset->id(); ?>
-                </td>
-                <td>TODO datum laatste datadump</td>
-                <td>TODO aantal datadump (=distributie on ondersteund formaat)</td>
-                <td><?php 
+                <?= $dataset->title(); ?> 
+                <?php 
                     #TODO, hyperlink op de juiste manier maken...
                     #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
-                    echo $this->hyperlink('', '../../item/'.$dataset->id().'/edit', ['class' => 'o-icon-edit']); 
+                    echo $this->hyperlink('', 'item/'.$dataset->id().'/edit', ['class' => 'o-icon-edit']); 
                 ?></td>
+                <td>TODO datum laatste datadump</td>
+                <td>TODO aantal datadump (=distributie in ondersteund formaat)</td>
             </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 </form>
 <?php else: ?>
-<div class="no-distributions">
-    <p><?php echo $this->translate('No LDS datasets with distributions found.'); ?></p>
+<div>
+    <p><?php echo $this->translate('No LDS datasets with RDF distributions found.'); ?></p>
 </div>
 <?php endif; ?>
 

@@ -7,6 +7,6 @@ class IndexController extends AbstractActionController
 {
     public function indexAction()
     {
-        return $this->redirect()->toRoute('admin/linked-data-sets-template', []);
+        return $this->redirect()->toRoute('admin/linked-data-sets/datacatalogs', []);
     }
 }
