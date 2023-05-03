@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace LinkedDataSets\Application\Service;
 
 use EasyRdf\Graph;
+use EasyRdf\RdfNamespace;
 use Laminas\Http\Client;
 use Laminas\Http\Response;
-use Laminas\Uri\Http;
-use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;
 
 final class ItemSetCrawler
@@ -145,6 +143,7 @@ final class ItemSetCrawler
     private function convertJsonldToNtriples($uri, $jsonld_string)
     {
         $graph = new Graph($uri);
+        RdfNamespace::set('o', 'http://omeka.org/s/vocabs/o#');
         $graph->parse($jsonld_string, "jsonld", $uri);
 
         return $graph->serialise("nt");
