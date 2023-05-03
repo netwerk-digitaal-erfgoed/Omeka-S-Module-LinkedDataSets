@@ -43,14 +43,14 @@ class DatasetDatadumpController extends AbstractActionController
 
         $formCrawlSelected = $this->getForm(ConfirmForm::class);
         $formCrawlSelected
-            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets', ['action' => 'crawl-distribution-selected'], true))
+            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets-template', ['action' => 'crawl-distribution-selected'], true))
             ->setAttribute('id', 'confirm-crawl-selected');
         $formCrawlSelected
             ->setButtonLabel('Confirm crawl'); // @translate
 
         $formCrawlAll= $this->getForm(ConfirmForm::class);
         $formCrawlAll
-            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets', ['action' => 'crawl-distribution-all'], true))
+            ->setAttribute('action', $this->url()->fromRoute('admin/linked-data-sets-template', ['action' => 'crawl-distribution-all'], true))
             ->setAttribute('id', 'confirm-crawl-all')
             ->get('submit')->setAttribute('disabled', true);
         $formCrawlAll
@@ -65,9 +65,9 @@ class DatasetDatadumpController extends AbstractActionController
 
     public function crawlDistributionSelectedAction()
     {
-        if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(null, ['action' => 'browse'], true);
-        }
+        //if (!$this->getRequest()->isPost()) {
+        //    return $this->redirect()->toRoute(null, ['action' => 'browse'], true);
+       // }
 
         $resourceIds = $this->params()->fromPost('resource_ids', []);
         if (!$resourceIds) {
@@ -95,9 +95,9 @@ class DatasetDatadumpController extends AbstractActionController
                 $this->messenger()->addSuccess($message);
             }
             
-        } else {
-            $this->messenger()->addFormErrors($form);
-        }
+       } else {
+           $this->messenger()->addFormErrors($form);
+       }
         return $this->redirect()->toRoute(null, ['action' => 'browse'], true);
     }   
     
