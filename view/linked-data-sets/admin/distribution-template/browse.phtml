@@ -1,0 +1,112 @@
+<?php
+$plugins = $this->getHelperPluginManager();
+$translate = $plugins->get('translate');
+$hyperlink = $plugins->get('hyperlink');
+$assetUrl = $plugins->get('assetUrl');
+$escapeAttr = $plugins->get('escapeHtmlAttr');
+
+$this->headScript()->appendFile($assetUrl('js/linked-data-sets.js', 'LinkedDataSets'), 'text/javascript', ['defer' => 'defer']);
+
+#TODO, alleen voor Admin, zie implementatie in Log module
+#$userIsAllowedCrawl = $this->userIsAllowed(\Log\Api\Adapter\LogAdapter::class, 'crawl_distribution');
+
+$userIsAllowedCrawl=true;
+
+?>
+
+<?php echo $this->pageTitle($this->translate('LDS Distributions'), 1, $this->translate('Linked Data Sets')); ?>
+
+<div class="breadcrumbs">
+    <?php echo $this->translate('Overzicht van LDS Distributions'); ?>
+</div>
+
+<?php if ($ldsDistributions): ?>
+
+<form method='post' id="batch-form" class="disable-unsaved-warning">
+<div class="batch-inputs">
+    <select class="batch-actions-select" name="batch_action" aria-label="<?= $translate('Batch actions') ?>">
+        <option value="default"><?= $translate('Batch actions') ?></option>
+        <?php if ($userIsAllowedCrawl): ?>
+        <option value="crawl-selected" class="batch-selected"><?= $translate('Crawl selected') ?></option>
+        <option value="crawl-all" disabled="disabled"><?= $translate('Crawl all') ?></option>
+        <?php endif; ?>
+    </select>
+    <div class="batch-actions">
+        <button type="button" class="default active" disabled="disabled"><?= $translate('Go') ?></button>
+        <?php if ($userIsAllowedCrawl): ?>
+        <a class="crawl button sidebar-content crawl-selected" data-sidebar-selector="#sidebar-crawl-selected"><?= $translate('Go') ?></a>
+        <a class="crawl button sidebar-content crawl-all" data-sidebar-selector="#sidebar-crawl-all"><?= $translate('Go') ?></a>
+        <?php endif; ?>
+    </div>
+</div>
+
+    <table class="tablesaw batch-edit" data-tablesaw-mode="stack">
+        <thead>
+            <tr>
+                <th>
+                <?php if ($userIsAllowedCrawl): ?>
+                <input type="checkbox" class="select-all">
+                <?php endif; ?><?php echo $this->translate('Label'); ?></th>
+                <th><?php echo $this->translate('Last modified'); ?></th>
+                <th><?php echo $this->translate('Actions'); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($ldsDistributions as $distribution): ?>
+    
+            <tr>
+                <td><?php if ($userIsAllowedCrawl): ?>
+                <input type="checkbox" name="resource_ids[]" value="<?= $distribution->id() ?>"<?php if (!$userIsAllowedCrawl): ?> disabled="disabled"<?php endif; ?>>
+                <?php endif; ?>
+                
+                TODO <?= $distribution->id(); ?>
+                </td>
+                <td>TODO</td>
+                <td><?php 
+                #TODO, hyperlink op de juiste manier maken...
+                #echo $this->hyperlink('', $this->url('', ['action' => 'edit', 'id' => 25], true), ['class' => 'o-icon-edit']); 
+                echo $this->hyperlink('', '../../item/'.$distribution->id().'/edit', ['class' => 'o-icon-edit']); 
+                ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</form>
+<?php else: ?>
+<div class="no-distributions">
+    <p><?php echo $this->translate('No LDS Distributions found.'); ?></p>
+</div>
+<?php endif; ?>
+
+
+<div id="sidebar-crawl-selected" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content">
+        <div id="sidebar-confirm">
+            <h3><?= $translate('Crawl distribution') ?></h3>
+            <p><?= sprintf($translate('Are you sure you would like to make a datadump for the %s selected distribution(s)?'),'<strong><span id="crawl-selected-count"></span></strong>') ?></p>
+            <p class="error">The existing distribution(s) will be overwritten!</p>
+            <label><input type="checkbox" name="confirm-crawl-check-all"> <?= $translate('Are you sure?') ?></label>
+            <?= $this->form($this->formCrawlSelected) ?>
+        </div>
+    </div>
+</div>
+
+<div id="sidebar-crawl-all" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content">
+        <div id="sidebar-confirm">
+            <h3><?= $translate('Crawl distribution') ?></h3>
+            <p><?= $translate('Are you sure you would like to make a datadump for all the distributions?') ?></p>
+            <p class="error">The existing distribution(s) will be overwritten!</p>
+            <label><input type="checkbox" name="confirm-crawl-check-all"> <?= $translate('Are you sure?') ?></label>
+            <?= $this->form($this->formCrawlAll) ?>
+        </div>
+    </div>
+</div>
