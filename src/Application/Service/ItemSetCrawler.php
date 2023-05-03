@@ -66,7 +66,7 @@ final class ItemSetCrawler
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->processContentBody($response->getContent());
+            $this->processContentBody($response->getBody());
             return;
         }
 
@@ -91,7 +91,7 @@ final class ItemSetCrawler
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->extractOmekaItems($response->getContent());
+            $this->extractOmekaItems($response->getBody());
             return $this->getNextUri($response->getHeaders()->toString());
         }
 
