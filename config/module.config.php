@@ -20,6 +20,7 @@ return [
             'LDS\ApiManagerHelper' => ApiManagerHelperFactory::class,
             'LDS\UriHelper' => UriHelperFactory::class,
             'LDS\CatalogDumpService' => CatalogDumpServiceFactory::class,
+            'LinkedDataSets\LinkedDataSets' => Service\Stdlib\LinkedDataSetsFactory::class,
         ]
     ],
     'dependencies' => [
@@ -35,11 +36,6 @@ return [
     'view_manager' => [
         'template_path_stack' => [
             sprintf('%s/../view', __DIR__),
-        ],
-    ],
-    'service_manager' => [
-        'factories' => [
-            'LinkedDataSets\LinkedDataSets' => Service\Stdlib\LinkedDataSetsFactory::class,
         ],
     ],
     'controllers' => [
