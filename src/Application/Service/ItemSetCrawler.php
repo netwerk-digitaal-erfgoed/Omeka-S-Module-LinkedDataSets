@@ -6,8 +6,10 @@ namespace LinkedDataSets\Application\Service;
 
 use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Http\Client;
 use Laminas\Http\Response;
+use Omeka\Entity\Item;
 use Psr\Container\ContainerInterface;
 
 final class ItemSetCrawler
@@ -23,18 +25,21 @@ final class ItemSetCrawler
     private $folder;
     private $serverUrl;
     private $baseUrl;
+    private SharedEventManagerInterface $sharedEventManager;
 
     public function __construct(ContainerInterface $serviceLocator)
     {
         $this->serviceLocator = $serviceLocator;
         $this->baseUrl = $this->serviceLocator->get('LDS\UriHelper')->constructUri();
+        $this->sharedEventManager = $this->serviceLocator->get('SharedEventManager');
     }
     public function crawl($itemSetId, $folder): void
     {
+
+        $this->detachEventListeners(); // make sure this isn't called twice
+
         $this->itemSetId = $itemSetId;
         $this->folder = $folder;
-//        $this->serverUrl = $serverUrl;
-//        $this->baseUrl = $this->serverUrl->getScheme() . '://' . $this->serverUrl->getHost();
 
         $startpage = 1;
 
@@ -136,15 +141,15 @@ final class ItemSetCrawler
 
     private function saveToDisk($uri, $jsonld_string): void
     {
-        $hash_of_uri = md5($uri);
-        file_put_contents("$this->folder/$hash_of_uri.nt", $this->convertJsonldToNtriples($uri, $jsonld_string));
+        $hashedUri = md5($uri);
+        file_put_contents("$this->folder/$hashedUri.nt", $this->convertJsonldToNtriples($uri, $jsonld_string));
     }
 
-    private function convertJsonldToNtriples($uri, $jsonld_string)
+    private function convertJsonldToNtriples($uri, $jsonLdString)
     {
         $graph = new Graph($uri);
         RdfNamespace::set('o', 'http://omeka.org/s/vocabs/o#');
-        $graph->parse($jsonld_string, "jsonld", $uri);
+        $graph->parse($jsonLdString, "jsonld", $uri);
 
         return $graph->serialise("nt");
     }
@@ -184,5 +189,10 @@ final class ItemSetCrawler
         }
 
         return $result;
+    }
+
+    private function detachEventListeners()
+    {
+        $this->sharedEventManager->clearListeners(Item::class);
     }
 }

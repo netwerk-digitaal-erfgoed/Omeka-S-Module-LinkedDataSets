@@ -4,20 +4,13 @@ declare(strict_types=1);
 
 namespace LinkedDataSets\Application\Job;
 
-use EasyRdf\Graph;
-use EasyRdf\RdfNamespace;
-use EasyRdf\Resource;
 use Laminas\Log\Logger;
-use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Service\CatalogDumpService;
 use LinkedDataSets\Infrastructure\Helpers\ApiManagerHelper;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
-use Omeka\Job\Exception\InvalidArgumentException;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 
 final class RecreateDataCatalogsJob extends AbstractJob
 {
@@ -28,11 +21,7 @@ final class RecreateDataCatalogsJob extends AbstractJob
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
         parent::__construct($job, $serviceLocator);
-//        $this->logger = $serviceLocator->get('Omeka\Logger');
-//
-//        if (!$this->logger) {
-//            throw new ServiceNotFoundException('The logger service is not found');
-//        }
+
         $this->apiHelper = $serviceLocator->get('LDS\ApiManagerHelper');
         $this->catalogDumpService = $this->serviceLocator->get('LDS\CatalogDumpService');
     }

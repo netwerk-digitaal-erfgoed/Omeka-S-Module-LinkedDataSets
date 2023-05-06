@@ -8,8 +8,11 @@ use Psr\Container\ContainerInterface;
 
 class CatalogDumpServiceFactory implements FactoryInterface
 {
-    public function __invoke(ContainerInterface $serviceLocator, $requestedName, array $options = null): CatalogDumpService
-    {
+    public function __invoke(
+        ContainerInterface $serviceLocator,
+        $requestedName,
+        array $options = null
+    ): CatalogDumpService {
         return new CatalogDumpService(
             $serviceLocator->get('Omeka\Logger'),
             $serviceLocator->get('LDS\UriHelper'),

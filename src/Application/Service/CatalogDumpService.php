@@ -13,7 +13,7 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 
 final class CatalogDumpService
 {
-    const DUMP_FORMATS = [
+    private const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
         "jsonld" => "jsonld",
