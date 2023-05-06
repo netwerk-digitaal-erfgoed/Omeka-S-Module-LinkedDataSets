@@ -10,6 +10,6 @@ class DatacatalogControllerFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-        return new DatacatalogController($services->get('LDS\LinkedDataSets'));
+        return new DatacatalogController($services->get('LDS\UriHelper'));
     }
 }
