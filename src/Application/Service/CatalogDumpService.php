@@ -36,6 +36,7 @@ final class CatalogDumpService
 
     public function dumpCatalog(int $id): void
     {
+        // this logic is based on https://github.com/coret/datasets-in-omeka-s/blob/main/src/datadump.php
         $this->id = $id;
         $apiUrl = $this->uriHelper->constructUri() . "/api/items/{$this->id}";
 
@@ -50,16 +51,16 @@ final class CatalogDumpService
             # Step 2 - get all datasets which are part of the data catalog
             $datasets = $resource->allResources("schema:dataset");
             foreach ($datasets as $dataset) {
-                $dataset_uri = $dataset->getUri();
-                $graph->parse($dataset_uri, 'jsonld');
+                $datasetUri = $dataset->getUri();
+                $graph->parse($datasetUri, 'jsonld');
             }
 
             # Step 3 - get all distribution which are part of datasets
             $distributions = $resource->allResources("schema:distribution");
 
             foreach ($distributions as $distribution) {
-                $distribution_uri = $distribution->getUri();
-                $graph->parse($distribution_uri, 'jsonld');
+                $distributionUri = $distribution->getUri();
+                $graph->parse($distributionUri, 'jsonld');
             }
 
             # Step 4 - get all publishers and creators (of data catalog and datasets)
@@ -73,8 +74,15 @@ final class CatalogDumpService
             $creators = $resource->allResources("schema:creator");
 
             foreach ($creators as $creator) {
-                $creator_uri = $creator->getUri();
-                $graph->parse($creator_uri, 'jsonld');
+                $creatorUri = $creator->getUri();
+                $graph->parse($creatorUri, 'jsonld');
+            }
+
+            $funders = $resource->allResources("schema:funder");
+
+            foreach ($funders as $funder) {
+                $funderUri = $funder->getUri();
+                $graph->parse($funderUri, 'jsonld');
             }
         }
 
