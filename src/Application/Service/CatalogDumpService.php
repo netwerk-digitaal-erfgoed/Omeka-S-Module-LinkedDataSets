@@ -23,6 +23,7 @@ final class CatalogDumpService
     protected ?Logger $logger = null;
     protected $uriHelper;
     protected $id;
+
     public function __construct(
         LoggerInterface $logger,
         $uriHelper
@@ -121,7 +122,9 @@ final class CatalogDumpService
             $content = $graph->serialise($format);
             file_put_contents(OMEKA_PATH . "/files/datacatalogs/{$fileName}." . $extension, $content);
             $this->logger->notice(
-                "The file {$fileName}.{$extension} is available." // @translate
+                "The file {$fileName}.{$extension} is available at " .
+                $this->uriHelper->constructUri() .
+                "/files/datacatalogs/{$fileName}." . "$extension"
             );
         }
     }
