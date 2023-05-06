@@ -13,6 +13,7 @@ use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Dto\DistributionDto;
 use LinkedDataSets\Application\Service\DistributionService;
 use LinkedDataSets\Application\Service\ItemSetCrawler;
+use LinkedDataSets\Application\Service\UpdateDistributionService;
 use LinkedDataSets\Infrastructure\Exception\DistributionNotDefinedException;
 use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 use LinkedDataSets\Infrastructure\Services\FileCompressionService;
@@ -24,12 +25,14 @@ use Omeka\Job\Exception\InvalidArgumentException;
 final class DataDumpJob extends AbstractJob
 {
     // in php 8.1 convert to enum
-    const DUMP_FORMATS = [
+    private const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
         "jsonld" => "jsonld",
         "rdfxml" => "xml",
     ];
+
+    private const DUMP_PATH = '/files/datadumps/';
 
     protected ?Logger $logger = null;
     protected $id;
@@ -38,6 +41,7 @@ final class DataDumpJob extends AbstractJob
     protected ?DistributionService $distributionService;
     protected ?ItemSetCrawler $itemSetCrawler;
     protected ?FileCompressionService $compressionService;
+    protected UpdateDistributionService $updateDistributionService;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -74,6 +78,7 @@ final class DataDumpJob extends AbstractJob
         if (!$this->api) {
             throw new ServiceNotFoundException('The API manager is not found');
         }
+        $this->updateDistributionService = $serviceLocator->get('LDS\UpdateDistributionService');
     }
 
 
@@ -117,8 +122,8 @@ final class DataDumpJob extends AbstractJob
         }
 
         foreach ($itemSets as $itemSet) {
-            $item_set_id = $this->getIdFromPath($itemSet->getUri());
-            $this->itemSetCrawler->crawl($item_set_id, $folder);
+            $itemSetId = $this->getIdFromPath($itemSet->getUri());
+            $this->itemSetCrawler->crawl($itemSetId, $folder);
         }
 
         $mergedFile = $this->mergeTriples($folder);
@@ -126,8 +131,9 @@ final class DataDumpJob extends AbstractJob
         $graph = new \EasyRdf\Graph();
         $graph->parseFile($mergedFile);
 
+        /** @var DistributionDto $distribution */
         foreach ($distributions as $distribution) {
-            $endFile = OMEKA_PATH . '/files/datadumps/' . $distribution->getFilename();
+            $endFile = OMEKA_PATH . self::DUMP_PATH . $distribution->getFilename();
 
             $convertFolder = $this->createTemporaryFolder();
             $tempFileName = uniqid();
@@ -145,9 +151,15 @@ final class DataDumpJob extends AbstractJob
             } else {
                 rename($tempPath, $endFile);
             }
+
+            $this->updateDistributionService->update(
+                $distribution->getId(),
+                $this->uriHelper->constructUri() . self::DUMP_PATH . $distribution->getFilename(),
+                (new \DateTime('today'))->format('Y-m-d'),
+                (new \SplFileInfo($endFile))->getSize()
+            );
         }
-        $size = (new \SplFileInfo($endFile))->getSize();
-        $uri = $this->uriHelper->constructUri() . '/files/datadumps/' . $endFile;
+
         // todo update distributie
     }
 

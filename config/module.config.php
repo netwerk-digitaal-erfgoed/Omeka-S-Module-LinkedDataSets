@@ -7,6 +7,7 @@ use LinkedDataSets\Infrastructure\Services\Factories\CatalogDumpServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\DistributionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\FileCompressionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\ItemSetCrawlerFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\UpdateDistributionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\UriHelperFactory;
 
 return [
@@ -18,6 +19,7 @@ return [
             'LDS\ApiManagerHelper' => ApiManagerHelperFactory::class,
             'LDS\UriHelper' => UriHelperFactory::class,
             'LDS\CatalogDumpService' => CatalogDumpServiceFactory::class,
+            'LDS\UpdateDistributionService' => UpdateDistributionServiceFactory::class,
         ]
     ],
     'dependencies' => [
