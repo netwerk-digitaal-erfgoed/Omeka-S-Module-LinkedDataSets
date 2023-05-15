@@ -43,8 +43,8 @@ The table below shows how the elements from the guideline correspond to Omeka S 
 
 ## Required modules
 
- - [Custom Vocab](https://github.com/omeka-s-modules/CustomVocab)
- - [Numeric Data Types](https://github.com/omeka-s-modules/NumericDataTypes)
+ - [Custom Vocab](https://github.com/omeka-s-modules/CustomVocab) (v1.7.1 or higher)
+ - [Numeric Data Types](https://github.com/omeka-s-modules/NumericDataTypes) (v1.11.0 or higher)
 
 ## Development
 For development purposes there's a small prefilled database in /database/test.omeka.sql. The admin user `admin@example.com` with password `password`
