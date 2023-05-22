@@ -181,10 +181,14 @@ final class ItemSetCrawler
         $result = [];
 
         foreach ($omekaItem as $key => $value) {
-            if ($key === '@id' && filter_var($value, FILTER_VALIDATE_URL) !== false) {
-                $result[] = $value;
-            } elseif (is_array($value)) {
-                $result = array_merge($result, $this->getRelatedUrisFromItem($value));
+            if ($key !== '@reverse') {
+                if ($key === '@id' && filter_var($value, FILTER_VALIDATE_URL) !== false) {
+                    if (strpos($value,$this->baseUrl) === 0) {
+                            $result[] = $value;
+                    }
+                } elseif (is_array($value)) {
+                    $result = array_merge($result, $this->getRelatedUrisFromItem($value));
+                }
             }
         }
 
