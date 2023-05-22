@@ -15,7 +15,7 @@ final class FileCompressionService
      * @param string $inFilename Input filename
      * @param int    $level      Compression level (default: 9)
      *
-     * @throws Exception if the input or output file can not be opened
+     * @throws \Exception if the input or output file can not be opened
      *
      * @return string Output filename
      */
@@ -32,8 +32,8 @@ final class FileCompressionService
         }
 
         // Open output file
-        $gzFilename = $inFilename.".gz";
-        $mode = "wb".$level;
+        $gzFilename = $inFilename . ".gz";
+        $mode = "wb" . $level;
         $gzFile = gzopen($gzFilename, $mode);
         if ($gzFile === false) {
             fclose($inFile);
@@ -43,7 +43,11 @@ final class FileCompressionService
         // Stream copy
         $length = 512 * 1024; // 512 kB
         while (!feof($inFile)) {
-            gzwrite($gzFile, fread($inFile, $length));
+            $stream = fread($inFile, $length);
+            if ($stream === false) {
+                throw new \Exception("An error occurred during reading: $inFile");
+            }
+            gzwrite($gzFile, $stream);
         }
 
         // Close files
@@ -54,13 +58,19 @@ final class FileCompressionService
         return $gzFilename;
     }
 
-    private function isGzipFile($path): bool {
+    private function isGzipFile(string $path): bool
+    {
         // the first the bytes of a gzip file are 1f 8b 08 according to
         // https://www.rfc-editor.org/rfc/rfc1952#page-6
         $handle = fopen($path, "rb");
+        if ($handle === false) {
+            throw new \Exception("Unable to open input file: $handle");
+        }
         $bytes = fread($handle, 3);
+        if ($bytes === false) {
+            throw new \Exception("Inputfile {$handle} is empty");
+        }
         fclose($handle);
         return bin2hex($bytes) === '1f8b08';
     }
-
 }

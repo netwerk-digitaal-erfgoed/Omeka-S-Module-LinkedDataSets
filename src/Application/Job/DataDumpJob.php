@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace LinkedDataSets\Application\Job;
 
+use EasyRdf\Exception;
 use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
-use EasyRdf\Resource;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use LinkedDataSets\Application\Dto\DistributionDto;
 use LinkedDataSets\Application\Service\DistributionService;
 use LinkedDataSets\Application\Service\ItemSetCrawler;
+use LinkedDataSets\Application\Service\UpdateDistributionService;
+use LinkedDataSets\Infrastructure\Exception\DistributionNotDefinedException;
+use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 use LinkedDataSets\Infrastructure\Services\FileCompressionService;
-use Omeka\Api\Adapter\ItemAdapter;
 use Omeka\Api\Manager;
-use Omeka\Api\Representation\ItemRepresentation;
-use Omeka\Api\Response;
-use Omeka\DataType\Resource\Item;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
@@ -26,20 +25,23 @@ use Omeka\Job\Exception\InvalidArgumentException;
 final class DataDumpJob extends AbstractJob
 {
     // in php 8.1 convert to enum
-    const DUMP_FORMATS = [
+    private const DUMP_FORMATS = [
         "turtle" => "ttl",
         "ntriples" => "nt",
         "jsonld" => "jsonld",
         "rdfxml" => "xml",
     ];
 
+    private const DUMP_PATH = '/files/datadumps/';
+
     protected ?Logger $logger = null;
-    protected $serverUrl;
     protected $id;
     protected ?Manager $api;
+    protected $uriHelper;
     protected ?DistributionService $distributionService;
     protected ?ItemSetCrawler $itemSetCrawler;
     protected ?FileCompressionService $compressionService;
+    protected UpdateDistributionService $updateDistributionService;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -48,9 +50,9 @@ final class DataDumpJob extends AbstractJob
         if (!$this->logger) {
             throw new ServiceNotFoundException('The logger service is not found');
         }
-        $this->serverUrl = $serviceLocator->get('ViewHelperManager')?->get('ServerUrl');
-        if (!$this->serverUrl) {
-            throw new ServiceNotFoundException('The serverUrl service is not found');
+        $this->uriHelper = $serviceLocator->get('LDS\UriHelper');
+        if (!$this->uriHelper) {
+            throw new ServiceNotFoundException('The UriHelper service is not found');
         }
         $this->id = $this->getArg('id');
         if (!$this->id) {
@@ -76,14 +78,16 @@ final class DataDumpJob extends AbstractJob
         if (!$this->api) {
             throw new ServiceNotFoundException('The API manager is not found');
         }
+        $this->updateDistributionService = $serviceLocator->get('LDS\UpdateDistributionService');
     }
 
 
+    /**
+     * @throws Exception
+     */
     public function perform(): void
     {
-//        $response = $this->api->read('items', $this->id);
-//        dd($response);
-        $apiUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost()."/api/items/{$this->id}";
+        $apiUrl = $this->uriHelper->constructUri() . "/api/items/{$this->id}";
 
         # Step 0 - create graph and define prefix schema:
         RdfNamespace::set('schema', 'https://schema.org/');
@@ -94,20 +98,32 @@ final class DataDumpJob extends AbstractJob
         # Step 1 - get lds dataset
         $graph->parse($apiUrl, 'jsonld');
 
-        $distribution = $this->distributionService->getDistribution($graph);
-        $itemSets = $graph->resourcesMatching("^schema:mainEntityOfPage");
-
-        if(!$this->isFormatSupported($distribution ) && !($itemSets)) {
-            return; // do nothing
-        }
-        if(!$this->isFormatSupported($distribution ) && ($itemSets)) {
+        try {
+            $distributions = $this->distributionService->getDistributions($graph);
+        } catch (FormatNotSupportedException $e) {
             $this->logger->info(
-                "Format {$distribution->getFormat()} for DataSet {$this->id} is not supported, no dump is created");
+                "Format {$e->format} for DataSet {$this->id} is not supported, no dump is created"
+            );
+            return;
+        } catch (DistributionNotDefinedException $e) {
+            $this->logger->info(
+                "DataSet {$this->id} has no distribution defined"
+            );
+            return;
+        }
+
+        $itemSets = $graph->resourcesMatching("^schema:isBasedOn");
+
+        if (!$itemSets) {
+            $this->logger->info(
+                "DataSet {$this->id} has no item_sets defined"
+            );
+            return;
         }
 
         foreach ($itemSets as $itemSet) {
-            $item_set_id = $this->getIdFromPath($itemSet->getUri());
-            $this->itemSetCrawler->crawl($item_set_id, $folder, $this->serverUrl);
+            $itemSetId = $this->getIdFromPath($itemSet->getUri());
+            $this->itemSetCrawler->crawl($itemSetId, $folder);
         }
 
         $mergedFile = $this->mergeTriples($folder);
@@ -115,37 +131,36 @@ final class DataDumpJob extends AbstractJob
         $graph = new \EasyRdf\Graph();
         $graph->parseFile($mergedFile);
 
-        $endFile = OMEKA_PATH . '/files/datadumps/'.$distribution->getFilename();
+        /** @var DistributionDto $distribution */
+        foreach ($distributions as $distribution) {
+            $endFile = OMEKA_PATH . self::DUMP_PATH . $distribution->getFilename();
 
-        $convertFolder = $this->createTemporaryFolder();
-        $tempFileName = uniqid();
-        $tempPath = $convertFolder . '/' . $tempFileName;
+            $convertFolder = $this->createTemporaryFolder();
+            $tempFileName = uniqid();
+            $tempPath = $convertFolder . '/' . $tempFileName;
 
+            file_put_contents(
+                $tempPath,
+                $graph->serialise($this->conversionFormat($distribution->getFormat()))
+            );
 
-        file_put_contents($tempPath , $graph->serialise("jsonld"));
+            // determine if the file needs to be compressed
+            if (substr($distribution->getFormat(), -4) === 'gzip') {
+                $compressedFile = $this->compressionService->gzCompressFile($tempPath);
+                rename($compressedFile, $endFile);
+            } else {
+                rename($tempPath, $endFile);
+            }
 
-        // determine if the file needs to be compressed
-        if (substr($distribution->getFormat(), -4) === 'gzip') {
-            $compressedFile = $this->compressionService->gzCompressFile($tempPath);
-            rename($compressedFile, $endFile);
-        } else {
-            rename($tempPath, $endFile);
+            $this->updateDistributionService->update(
+                $distribution->getId(),
+                $this->uriHelper->constructUri() . self::DUMP_PATH . $distribution->getFilename(),
+                (new \DateTime('today'))->format('Y-m-d'),
+                (new \SplFileInfo($endFile))->getSize()
+            );
         }
 
-        $size = (new \SplFileInfo($endFile))->getSize();
-        $uri = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost().'/files/datadumps/'.$endFile;
-
         // todo update distributie
-
-//        /** @var Response $entity */
-        $entity = $this->api->read('items', $distribution->getId());
-//        /** @var ItemRepresentation $item */
-//        $item = $entity->getContent();
-//        $values = $item->values();
-////        $item-
-////        $this->api->update('items', $distribution->getId());
-//            // determine size and names and update record
-
     }
 
     private function createTemporaryFolder(): string
@@ -157,7 +172,8 @@ final class DataDumpJob extends AbstractJob
         return $path;
     }
 
-    private function getIdFromPath($uri): int {
+    private function getIdFromPath($uri): int
+    {
         $path = parse_url($uri, PHP_URL_PATH);
         $segments = explode('/', $path);
         $id = end($segments);
@@ -166,7 +182,7 @@ final class DataDumpJob extends AbstractJob
 
     protected function mergeTriples(string $folder): string
     {
-        $generatedTriples = glob($folder."/*.nt");
+        $generatedTriples = glob($folder . "/*.nt");
 
         // Name of the output file
         $mergedFile = "$folder/merged_file.nt";
@@ -188,18 +204,20 @@ final class DataDumpJob extends AbstractJob
         return $mergedFile;
     }
 
-    private function isFormatSupported(DistributionDto $distributionDto): bool {
-        $supportedFormats = [
-            "application/ld+json",
-            "application/ld+json+gzip",
-            "application/n-triples",
-            "application/n-triples+gzip",
-            "application/rdf+xml",
-            "application/rdf+xml+gzip",
-            "text/turtle",
-            "text/turtle+gzip",
-        ];
-
-        return (in_array( $distributionDto->getFormat(), $supportedFormats));
+    private function conversionFormat($format): string
+    {
+        if (str_contains($format, 'text/turtle')) {
+            return 'ttl';
+        }
+        if (str_contains($format, 'application/rdf+xml')) {
+            return 'xml';
+        }
+        if (str_contains($format, 'application/n-triples')) {
+            return 'nt';
+        }
+        if (str_contains($format, 'application/ld+json')) {
+            return 'jsonld';
+        }
+        throw new \Exception('format not found');
     }
 }

@@ -12,6 +12,6 @@ final class ItemSetCrawlerFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null): ItemSetCrawler
     {
-        return new ItemSetCrawler();
+        return new ItemSetCrawler($container);
     }
 }

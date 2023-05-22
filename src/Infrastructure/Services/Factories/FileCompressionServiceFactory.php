@@ -10,9 +10,11 @@ use Psr\Container\ContainerInterface;
 
 final class FileCompressionServiceFactory implements FactoryInterface
 {
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null): FileCompressionService
-    {
-
+    public function __invoke(
+        ContainerInterface $container,
+        $requestedName,
+        array $options = null
+    ): FileCompressionService {
         return new FileCompressionService();
     }
 }

@@ -50,8 +50,8 @@
             "o:default_lang": null,
             "data_types": [
                 {
-                    "name": "customvocab:1",
-                    "label": "LDS Licenses"
+                    "name": "customvocab:3",
+                    "label": "LDS licenses"
                 }
             ],
             "vocabulary_namespace_uri": "https:\/\/schema.org\/",
@@ -116,7 +116,12 @@
             "o:is_required": false,
             "o:is_private": false,
             "o:default_lang": null,
-            "data_types": [],
+            "data_types": [
+                {
+                    "name": "uri",
+                    "label": "URI"
+                }
+            ],
             "vocabulary_namespace_uri": "https:\/\/schema.org\/",
             "vocabulary_label": "Schema.org",
             "local_name": "usageInfo",
@@ -214,7 +219,7 @@
             "o:default_lang": null,
             "data_types": [
                 {
-                    "name": "customvocab:11",
+                    "name": "customvocab:2",
                     "label": "LDS IETF Language Tags"
                 }
             ],

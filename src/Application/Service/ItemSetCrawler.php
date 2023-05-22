@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace LinkedDataSets\Application\Service;
 
+use EasyRdf\Graph;
+use EasyRdf\RdfNamespace;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Http\Client;
 use Laminas\Http\Response;
-use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Omeka\Entity\Item;
+use Psr\Container\ContainerInterface;
 
 final class ItemSetCrawler
 {
@@ -16,23 +19,27 @@ final class ItemSetCrawler
     private const SORT_BY = 'id';
     private const SORT_ORDER = 'asc';
 
-    private $resources_seen = [];
-    private $resources_todo = [];
-    private $item_set_id;
+    private $resourcesProcessed = [];
+    private $resourcesToProcess = [];
+    private $itemSetId;
     private $folder;
     private $serverUrl;
     private $baseUrl;
+    private SharedEventManagerInterface $sharedEventManager;
 
-    public function __construct() {
-    }
-    public function crawl($item_set_id, $folder, $serverUrl): void
+    public function __construct(ContainerInterface $serviceLocator)
     {
-//        $this->resources_seen = [];
-//        $this->resources_todo = [];
-        $this->item_set_id = $item_set_id;
+        $this->serviceLocator = $serviceLocator;
+        $this->baseUrl = $this->serviceLocator->get('LDS\UriHelper')->constructUri();
+        $this->sharedEventManager = $this->serviceLocator->get('SharedEventManager');
+    }
+    public function crawl($itemSetId, $folder): void
+    {
+
+        $this->detachEventListeners(); // make sure this isn't called twice
+
+        $this->itemSetId = $itemSetId;
         $this->folder = $folder;
-        $this->serverUrl = $serverUrl;
-        $this->baseUrl = $this->serverUrl->getScheme().'://'.$this->serverUrl->getHost();
 
         $startpage = 1;
 
@@ -40,29 +47,29 @@ final class ItemSetCrawler
             throw new \Exception('The temporary folder does not exists');
         }
 
-        $urlToCrawl = $this->baseUrl . '/api/items?item_set_id=' . $this->item_set_id .
+        $urlToCrawl = $this->baseUrl . '/api/items?item_set_id=' . $this->itemSetId .
             '&per_page=' . self::PER_PAGE . '&sort_by=' . self::SORT_BY . '&sort_order=' .
             self::SORT_ORDER . '&page=' . $startpage;
 
         while (!empty($urlToCrawl)) {
-            $urlToCrawl = $this->get_content_and_next($urlToCrawl);
+            $urlToCrawl = $this->getContentAndNextUri($urlToCrawl);
         }
 
-        while (!empty($this->resources_todo)) {
-            $resource = array_shift($this->resources_todo);
-            if (!isset($this->resources_seen[$resource])) {
-                $this->get_content( $resource);
-                $this->resources_seen[$resource] = 1;
+        while (!empty($this->resourcesToProcess)) {
+            $resource = array_shift($this->resourcesToProcess);
+            if (!isset($this->resourcesProcessed[$resource])) {
+                $this->getContent($resource);
+                $this->resourcesProcessed[$resource] = 1;
             }
         }
     }
 
-    private function get_content($url): void
+    private function getContent($url): void
     {
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->process_content_body( $response->getContent());
+            $this->processContentBody($response->getBody());
             return;
         }
 
@@ -76,19 +83,19 @@ final class ItemSetCrawler
         }
     }
 
-    private function process_content_body($jsonld_string)
+    private function processContentBody($omekaItemAsJsonLD)
     {
-        $omekaItem = json_decode($jsonld_string, true);
-        $this->process_omeka_item( $omekaItem);
+        $omekaItem = json_decode($omekaItemAsJsonLD, true);
+        $this->processOmekaItem($omekaItem);
     }
 
-    private function get_content_and_next($url)
+    private function getContentAndNextUri($url)
     {
         $response = $this->readUrl($url);
 
         if ($response->getStatusCode() === 200) {
-            $this->extractOmekaItems( $response->getContent());
-            return $this->get_next($response->getHeaders()->toString());
+            $this->extractOmekaItems($response->getBody());
+            return $this->getNextUri($response->getHeaders()->toString());
         }
 
         if ($response->getStatusCode() === 500) {
@@ -105,15 +112,15 @@ final class ItemSetCrawler
     {
         $omekaItems = json_decode($jsonld_string, true);
         foreach ($omekaItems as $omekaItem) {
-            $this->process_omeka_item( $omekaItem);
+            $this->processOmekaItem($omekaItem);
         }
     }
 
-    public function process_omeka_item($omekaItem): void
+    public function processOmekaItem($omekaItem): void
     {
         if (isset($omekaItem["@id"])) {
             $id = $omekaItem["@id"];
-            $this->resources_seen[$id] = 1;
+            $this->resourcesProcessed[$id] = 1;
 
             $jsonld_string = json_encode(
                 $omekaItem,
@@ -123,30 +130,31 @@ final class ItemSetCrawler
             $linkedUris = $this->getRelatedUrisFromItem($omekaItem);
 
             foreach ($linkedUris as $linkedUri) {
-                if (!isset($this->resources_seen[$linkedUri])) {
-                    $this->resources_todo[] = $linkedUri;
+                if (!isset($this->resourcesProcessed[$linkedUri])) {
+                    $this->resourcesToProcess[] = $linkedUri;
                 }
             }
 
-            $this->save_to_disk($id, $jsonld_string);
+            $this->saveToDisk($id, $jsonld_string);
         }
     }
 
-    private function save_to_disk($uri, $jsonld_string): void
+    private function saveToDisk($uri, $jsonld_string): void
     {
-        $hash_of_uri = md5($uri);
-        file_put_contents("$this->folder/$hash_of_uri.nt", $this->convert_jsonld_to_ntriples($uri, $jsonld_string));
+        $hashedUri = md5($uri);
+        file_put_contents("$this->folder/$hashedUri.nt", $this->convertJsonldToNtriples($uri, $jsonld_string));
     }
 
-    private function convert_jsonld_to_ntriples($uri, $jsonld_string)
+    private function convertJsonldToNtriples($uri, $jsonLdString)
     {
-        $graph = new \EasyRdf\Graph($uri);
-        $graph->parse($jsonld_string, "jsonld", $uri);
+        $graph = new Graph($uri);
+        RdfNamespace::set('o', 'http://omeka.org/s/vocabs/o#');
+        $graph->parse($jsonLdString, "jsonld", $uri);
 
         return $graph->serialise("nt");
     }
 
-    private function get_next($headers)
+    private function getNextUri($headers)
     {
         # link: <https://www.goudatijdmachine.nl/data/api/items?item_set_id=13004&sort_by=id&sort_order=asc&page=1>; rel="first", <https://www.goudatijdmachine.nl/data/api/items?item_set_id=13004&sort_by=id&sort_order=asc&page=2>; rel="next", <https://www.goudatijdmachine.nl/data/api/items?item_set_id=13004&sort_by=id&sort_order=asc&page=238>; rel="last"
 
@@ -161,14 +169,15 @@ final class ItemSetCrawler
     {
         try {
             $response =  (new Client($url))->send(); // replace by symfony PSR-7 http client?
-        } catch  (\Exception $e) {
+        } catch (\Exception $e) {
             $catched = true;
         }
 
         return $response;
     }
 
-    private function getRelatedUrisFromItem($omekaItem): array {
+    private function getRelatedUrisFromItem($omekaItem): array
+    {
         $result = [];
 
         foreach ($omekaItem as $key => $value) {
@@ -180,5 +189,10 @@ final class ItemSetCrawler
         }
 
         return $result;
+    }
+
+    private function detachEventListeners()
+    {
+        $this->sharedEventManager->clearListeners(Item::class);
     }
 }

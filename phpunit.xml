@@ -7,14 +7,14 @@
     backupGlobals="false"
     colors="true"
     verbose="true"
-    forceCoversAnnotation="true"
+    forceCoversAnnotation="false"
     beStrictAboutCoversAnnotation="true"
     beStrictAboutOutputDuringTests="true"
     beStrictAboutTodoAnnotatedTests="true"
     >
     <testsuites>
         <testsuite name="LinkedDataSets">
-            <directory suffix="Test.php">test/LinkedDataSetsTest</directory>
+            <directory suffix="Test.php">test</directory>
         </testsuite>
     </testsuites>
     <filter>

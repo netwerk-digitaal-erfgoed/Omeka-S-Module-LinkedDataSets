@@ -2,11 +2,13 @@
 
 namespace LinkedDataSets;
 
-
-
+use LinkedDataSets\Infrastructure\Services\Factories\ApiManagerHelperFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\CatalogDumpServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\DistributionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\FileCompressionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\ItemSetCrawlerFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\UpdateDistributionServiceFactory;
+use LinkedDataSets\Infrastructure\Services\Factories\UriHelperFactory;
 
 return [
     'service_manager' => [
@@ -14,6 +16,10 @@ return [
             'LDS\DistributionService' => DistributionServiceFactory::class,
             'LDS\ItemSetCrawler' => ItemSetCrawlerFactory::class,
             'LDS\FileCompressionService' => FileCompressionServiceFactory::class,
+            'LDS\ApiManagerHelper' => ApiManagerHelperFactory::class,
+            'LDS\UriHelper' => UriHelperFactory::class,
+            'LDS\CatalogDumpService' => CatalogDumpServiceFactory::class,
+            'LDS\UpdateDistributionService' => UpdateDistributionServiceFactory::class,
         ]
     ],
     'dependencies' => [
