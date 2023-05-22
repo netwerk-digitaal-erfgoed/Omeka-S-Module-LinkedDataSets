@@ -29,11 +29,7 @@ final class UpdateDistributionService
     {
         $this->detachEventListeners();
 
-        $result = $this->api
-            ->search('properties', ['term' => 'sdo:contentSize'])->getContent();
-
         $item = $this->api->read('items', $distributionId)->getContent();
-
         $itemData = json_decode(json_encode($item), true);
 
         if (array_key_exists('sdo:contentUrl', $itemData)) {
@@ -45,20 +41,29 @@ final class UpdateDistributionService
         } else {
             $itemData = $this->arrayInsertAfter(
                 $itemData,
-                'sdo:datePublished',
-                $this->createContentSizeArray($result, $fileSize)
+                'sdo:contentUrl',
+                $this->createContentSizeArray($fileSize)
             );
         }
 
-        if (array_key_exists('sdo:datePublished', $itemData)) {
-            $itemData['sdo:datePublished'][0]['@value'] = $date;
+        if (array_key_exists('sdo:dateModified', $itemData)) {
+            $itemData['sdo:dateUpdated'][0]['@value'] = $date;
+        } else {
+            $itemData = $this->arrayInsertAfter(
+                $itemData,
+                'sdo:contentSize',
+                $this->createDateModifiedArray($date)
+            );
         }
 
         $this->api->update('items', $distributionId, $itemData, [], []);
     }
 
-    private function createContentSizeArray($result, $fileSize)
+    private function createContentSizeArray($fileSize)
     {
+        $result = $this->api
+            ->search('properties', ['term' => 'sdo:contentSize'])->getContent();
+
         return ['sdo:contentSize' => [
             [
                 'type' => "numeric:integer",
@@ -69,6 +74,21 @@ final class UpdateDistributionService
         ];
     }
 
+    private function createDateModifiedArray($date)
+    {
+        $result = $this->api
+            ->search('properties', ['term' => 'sdo:dateModified'])->getContent();
+
+        return ['sdo:dateModified' => [
+            [
+                'type' => "numeric:timestamp",
+                'property_id' => $result[0]->id(),
+                '@value' => $date,
+             ]
+        ]
+        ];
+    }
+    
     private function arrayInsertAfter(array $array, $key, array $new)
     {
         $keys = array_keys($array);
