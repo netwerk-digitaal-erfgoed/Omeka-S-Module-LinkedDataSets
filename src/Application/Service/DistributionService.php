@@ -29,18 +29,15 @@ final class DistributionService
                 ->getValue()
             ;
 
-            // TODO: determine where to check for supported formats
-//            if (!$this->isFormatSupported($format)) {
-//                throw FormatNotSupportedException::withFormat($format);
-//            }
+            if ($this->isFormatSupported($format)) {
+                $fileName = $newGraph
+                    ->getLiteral($distributionItem->getUri(), 'schema:name')
+                    ->getValue()
+                ;
+                $id = $this->getIdFromPath($distributionItem->getUri());
 
-            $fileName = $newGraph
-                ->getLiteral($distributionItem->getUri(), 'schema:name')
-                ->getValue()
-            ;
-            $id = $this->getIdFromPath($distributionItem->getUri());
-
-            $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
+                $distributionItemsArray[] = new DistributionDto($format, $fileName, $id);
+            }
         }
 
         return $distributionItemsArray;
