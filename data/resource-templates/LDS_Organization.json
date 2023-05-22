@@ -2,7 +2,7 @@
     "o:label": "LDS Organization",
     "o:resource_template_property": [
         {
-            "o:alternate_label": "Naam",
+            "o:alternate_label": null,
             "o:alternate_comment": "The name of the organization.",
             "o:is_required": true,
             "o:is_private": false,
@@ -14,8 +14,8 @@
             "label": "name"
         },
         {
-            "o:alternate_label": "Internetadres",
-            "o:alternate_comment": null,
+            "o:alternate_label": null,
+            "o:alternate_comment": "URL of the organization",
             "o:is_required": false,
             "o:is_private": false,
             "o:default_lang": null,
@@ -31,7 +31,7 @@
             "label": "url"
         },
         {
-            "o:alternate_label": "Alternatieve naam of afkorting",
+            "o:alternate_label": null,
             "o:alternate_comment": "Alternative names such as an abbreviation that the organization is known under.",
             "o:is_required": false,
             "o:is_private": false,
@@ -43,7 +43,7 @@
             "label": "alternateName"
         },
         {
-            "o:alternate_label": "Hetzelfde als",
+            "o:alternate_label": null,
             "o:alternate_comment": "Links to the organization in other databases.",
             "o:is_required": false,
             "o:is_private": false,
@@ -60,8 +60,8 @@
             "label": "sameAs"
         },
         {
-            "o:alternate_label": "Contactpersoon",
-            "o:alternate_comment": null,
+            "o:alternate_label": null,
+            "o:alternate_comment": "A contact point for the organization.",
             "o:is_required": false,
             "o:is_private": false,
             "o:default_lang": null,
