@@ -17,6 +17,7 @@ use LinkedDataSets\Application\Service\UpdateDistributionService;
 use LinkedDataSets\Infrastructure\Exception\DistributionNotDefinedException;
 use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 use LinkedDataSets\Infrastructure\Services\FileCompressionService;
+use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
 use Omeka\Api\Manager;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
@@ -42,6 +43,7 @@ final class DataDumpJob extends AbstractJob
     protected ?ItemSetCrawler $itemSetCrawler;
     protected ?FileCompressionService $compressionService;
     protected UpdateDistributionService $updateDistributionService;
+    protected $dispatcher;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -160,7 +162,7 @@ final class DataDumpJob extends AbstractJob
             );
         }
 
-        // todo update distributie
+        $this->dispatcher->dispatch(RecreateDataCatalogsJob::class, []); // update distributie
     }
 
     private function createTemporaryFolder(): string

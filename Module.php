@@ -139,21 +139,18 @@ final class Module extends GenericModule
         $label = $resourceTemplate->label();
         $useBackground = true; // later in config?
 
-        if (
-            $label === 'LDS Datacatalog' ||
-            $label === 'LDS Dataset' ||
-            $label === 'LDS Distribution'
-        ) {
-            $job = $useBackground
-                ? $dispatcher->dispatch(RecreateDataCatalogsJob::class, []) // async
-                : $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(Synchronous::class));
-        }
-
-        if ($label === 'LDS Dataset') { // Don't know if this is the best way?
+        if ( $label === 'LDS Dataset' ) {
             $job = $useBackground
                 ? $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ]) // async
-                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(
-                    Synchronous::class));
+                : $dispatcher->dispatch(DataDumpJob::class, [ 'id' => $id ], $this->getServiceLocator()->get(Synchronous::class));
+        } else {
+            if ( $label === 'LDS Datacatalog' ||
+                 $label === 'LDS Distribution'
+            ) {
+                $job = $useBackground
+                    ? $dispatcher->dispatch(RecreateDataCatalogsJob::class, []) // async
+                    : $dispatcher->dispatch(RecreateDataCatalogsJob::class, [], $this->getServiceLocator()->get(Synchronous::class));
+            }
         }
     }
 }
