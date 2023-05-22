@@ -97,19 +97,28 @@ final class CatalogDumpService
     protected function removeOmekaTags(Graph $graph): void
     {
         foreach ($graph->resources() as $resource) {
-            foreach ($resource->properties() as $property) {
-                if ($property == "rdf:type") {
-                    /** @var Resource $item */
-                    foreach ($resource->all("rdf:type") as $item) {
-                        if (preg_match("/omeka\.org\/s\/vocabs\/o/", $item->getUri())) {
-                            $resource->delete("rdf:type", $item);
+            if (preg_match("/\/resources\//",$resource->getUri())) {
+                foreach($resource->properties() as $pu) {
+                    $graph->delete($resource,$pu);
+                }
+                foreach($resource->propertyUris() as $pu) {
+                    $resource->delete($pu);
+                }
+            } else {
+                foreach ($resource->properties() as $property) {
+                    if ($property == "rdf:type") {
+                        /** @var Resource $item */
+                        foreach ($resource->all("rdf:type") as $item) {
+                            if (preg_match("/omeka\.org\/s\/vocabs\/o/", $item->getUri())) {
+                                $resource->delete("rdf:type", $item);
+                            }
                         }
                     }
                 }
-            }
-            foreach ($resource->propertyUris() as $propertyUris) {
-                if (preg_match("/omeka\.org\/s\/vocabs\/o/", $propertyUris)) {
-                    $resource->delete($propertyUris);
+                foreach ($resource->propertyUris() as $propertyUris) {
+                    if (preg_match("/omeka\.org\/s\/vocabs\/o/", $propertyUris)) {
+                        $resource->delete($propertyUris);
+                    }
                 }
             }
         }
