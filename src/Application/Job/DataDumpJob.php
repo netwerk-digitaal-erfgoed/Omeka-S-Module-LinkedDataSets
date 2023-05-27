@@ -7,6 +7,7 @@ namespace LinkedDataSets\Application\Job;
 use EasyRdf\Exception;
 use EasyRdf\Graph;
 use EasyRdf\RdfNamespace;
+use FilesystemIterator;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
@@ -18,10 +19,13 @@ use LinkedDataSets\Infrastructure\Exception\DistributionNotDefinedException;
 use LinkedDataSets\Infrastructure\Exception\FormatNotSupportedException;
 use LinkedDataSets\Infrastructure\Services\FileCompressionService;
 use LinkedDataSets\Application\Job\RecreateDataCatalogsJob;
+use LinkedDataSets\Infrastructure\Services\FilesystemService;
 use Omeka\Api\Manager;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
 use Omeka\Job\Exception\InvalidArgumentException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 final class DataDumpJob extends AbstractJob
 {
@@ -44,6 +48,7 @@ final class DataDumpJob extends AbstractJob
     protected ?FileCompressionService $compressionService;
     protected UpdateDistributionService $updateDistributionService;
     protected $dispatcher;
+    private FilesystemService $filesystemService;
 
     public function __construct(Job $job, ServiceLocatorInterface $serviceLocator)
     {
@@ -81,6 +86,7 @@ final class DataDumpJob extends AbstractJob
             throw new ServiceNotFoundException('The API manager is not found');
         }
         $this->updateDistributionService = $serviceLocator->get('LDS\UpdateDistributionService');
+        $this->filesystemService = $serviceLocator->get('LDS\FilesystemService');
     }
 
 
@@ -95,7 +101,7 @@ final class DataDumpJob extends AbstractJob
         RdfNamespace::set('schema', 'https://schema.org/');
         $graph = new Graph(); //dep injection?
 
-        $folder = $this->createTemporaryFolder();
+        $folder = $this->filesystemService->createTemporaryFolder();
 
         # Step 1 - get lds dataset
         $graph->parse($apiUrl, 'jsonld');
@@ -136,8 +142,7 @@ final class DataDumpJob extends AbstractJob
         /** @var DistributionDto $distribution */
         foreach ($distributions as $distribution) {
             $endFile = OMEKA_PATH . self::DUMP_PATH . $distribution->getFilename();
-
-            $convertFolder = $this->createTemporaryFolder();
+            $convertFolder = $this->filesystemService->createTemporaryFolder();
             $tempFileName = uniqid();
             $tempPath = $convertFolder . '/' . $tempFileName;
 
@@ -160,19 +165,16 @@ final class DataDumpJob extends AbstractJob
                 (new \DateTime('today'))->format('Y-m-d'),
                 (new \SplFileInfo($endFile))->getSize()
             );
+
+            $this->filesystemService->cleanUp($convertFolder);
         }
+
+        $this->filesystemService->cleanUp($folder);
 
         $this->dispatcher->dispatch(RecreateDataCatalogsJob::class, []); // update distributie
     }
 
-    private function createTemporaryFolder(): string
-    {
-        $dir = sys_get_temp_dir();
-        $tmp = uniqid('lds_');
-        $path = $dir . '/' . $tmp;
-        mkdir($path);
-        return $path;
-    }
+
 
     private function getIdFromPath($uri): int
     {

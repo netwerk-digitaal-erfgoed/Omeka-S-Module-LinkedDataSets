@@ -9,6 +9,7 @@ use LinkedDataSets\Infrastructure\Services\Factories\FileCompressionServiceFacto
 use LinkedDataSets\Infrastructure\Services\Factories\ItemSetCrawlerFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\UpdateDistributionServiceFactory;
 use LinkedDataSets\Infrastructure\Services\Factories\UriHelperFactory;
+use LinkedDataSets\Infrastructure\Services\FilesystemService;
 
 return [
     'service_manager' => [
@@ -20,6 +21,7 @@ return [
             'LDS\UriHelper' => UriHelperFactory::class,
             'LDS\CatalogDumpService' => CatalogDumpServiceFactory::class,
             'LDS\UpdateDistributionService' => UpdateDistributionServiceFactory::class,
+            'LDS\FilesystemService' => FilesystemService::class,
         ]
     ],
     'dependencies' => [
