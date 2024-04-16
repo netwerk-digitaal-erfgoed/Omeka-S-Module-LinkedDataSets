@@ -16,7 +16,7 @@ As outlined in the [conceptual model](ConceptualModel.md) a data catalog consist
     - Save the Item.
     - You can have more than one data catalog.
 
-3. **Define you dataset description** by creating a new Item based on the LDS Dataset. 
+3. **Define your dataset description** by creating a new Item based on the LDS Dataset. 
     - At least provide a `sdo:name`, attach an `sdo:publisher` item, select an URI of the appropiate `sdo:license`. 
     - It is recommended to also provide information for the rest of the input fields. 
     - The `sdo:distribution` field can be skipped for now (as this LDS Distribtion Item is yet to be defined in the next step).
@@ -24,7 +24,7 @@ As outlined in the [conceptual model](ConceptualModel.md) a data catalog consist
     - Save the Item.
     - You can have more than one data set.
 
-4. **Define you a distribution** of a dataset by creating a new Item based on the LDS Distribution. 
+4. **Define your distribution** of a dataset by creating a new Item based on the LDS Distribution. 
     - At least select a `sdo:encodingFormat` from the list and provide and URI for the `sdo:contentUrl`. 
     - It is recommended to also provide information for the rest of the input fields. 
     - If you want to this distribution to be a RDF datadump of one ore more Item Sets, input `TODO` as the `sdo:contentUrl` URI value, see section 2.2. 
