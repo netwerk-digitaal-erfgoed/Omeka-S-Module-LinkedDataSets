@@ -136,7 +136,7 @@ final class Module extends GenericModule
         $response = $this->api->read('items', $id);
         $content = $response->getContent();
         $resourceTemplate = $content->resourceTemplate();
-        $label = $resourceTemplate->label();
+        $label = $resourceTemplate ? $resourceTemplate->label() : null; // added null check to prevent error when resource template not set
         $useBackground = true; // later in config?
 
         if ( $label === 'LDS Dataset' ) {
