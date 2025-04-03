@@ -23,6 +23,7 @@ use LinkedDataSets\Infrastructure\Services\FilesystemService;
 use Omeka\Api\Manager;
 use Omeka\Entity\Job;
 use Omeka\Job\AbstractJob;
+use Omeka\Job\Dispatcher;
 use Omeka\Job\Exception\InvalidArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -87,6 +88,11 @@ final class DataDumpJob extends AbstractJob
         }
         $this->updateDistributionService = $serviceLocator->get('LDS\UpdateDistributionService');
         $this->filesystemService = $serviceLocator->get('LDS\FilesystemService');
+        $this->dispatcher = $serviceLocator->get('Omeka\Job\Dispatcher');
+        if (!$this->dispatcher) {
+            throw new ServiceNotFoundException('The job dispatcher service is not found');
+        }
+        
     }
 
 
