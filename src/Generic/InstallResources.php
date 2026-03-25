@@ -89,11 +89,12 @@ class InstallResources
                 ));
             }
             $exists = $this->checkVocabulary($data, $module);
-            if (is_null($exists)) {
-                throw new ModuleCannotInstallException((string) new Message(
-                    'An error occured when adding the prefix "%s": another vocabulary exists. Resolve the conflict before installing this module.', // @translate
-                    $data['vocabulary']['o:prefix']
-                ));
+            if ($exists > 1) {
+                $messenger = $this->services->get('ControllerPluginManager')->get('messenger');
+                $message = new Message(
+                    'Warning: skipped vocabulary creation because of reason below. Please make sure you have a valid Schema.org vocabulary installed for this module to work',
+                );
+                $messenger->addWarning($message);
             }
         }
 
@@ -165,40 +166,81 @@ class InstallResources
      * @return bool False if not found, true if exists, null if a vocabulary
      * exists with the same prefix but a different uri.
      */
-    public function checkVocabulary(array $vocabularyData, ?string $module = null): ?bool
+    public function checkVocabulary(array $vocabularyData, ?string $module = null): ?int
     {
         $vocabularyData = $this->prepareVocabularyData($vocabularyData, $module);
+//
+//        if (!empty($vocabularyData['update']['namespace_uri'])) {
+//            /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
+//            $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $vocabularyData['update']['namespace_uri']])->getContent();
+//            if ($vocabularyRepresentation) {
+//                return true;
+//            }
+//        }
+//
+//        $namespaceUri = $vocabularyData['vocabulary']['o:namespace_uri'];
+//        /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
+//        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
+//        if ($vocabularyRepresentation) {
+//            return true;
+//        }
+//
+//        // Check if the vocabulary have been already imported.
+//        $prefix = $vocabularyData['vocabulary']['o:prefix'];
+//        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
+//        if (!$vocabularyRepresentation) {
+//            return false;
+//        }
+//
+//        // Check if it is the same vocabulary.
+//        // See createVocabulary() about the trim.
+//        if (rtrim($vocabularyRepresentation->namespaceUri(), '#/') === rtrim($namespaceUri, '#/')) {
+//            return true;
+//        }
+//
+//        // It is another vocabulary with the same prefix.
+//        return null;
 
-        if (!empty($vocabularyData['update']['namespace_uri'])) {
-            /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
-            $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $vocabularyData['update']['namespace_uri']])->getContent();
-            if ($vocabularyRepresentation) {
-                return true;
+        $namespaceUri = $vocabularyData['vocabulary']['o:namespace_uri'] ?? '';
+        $prefix = $vocabularyData['vocabulary']['o:prefix'] ?? '';
+
+        // Look for existing vocabularies by prefix and by namespace separately.
+        // TODO: Note that namespace values 'https://schema.org' and 'https://schema.org/' (with trailing slash) are considered as different namespaces
+        // TODO: fix this with rtrim. See commented out code above.
+        $vocabByPrefix = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
+        $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
+
+        if ($vocabByPrefix || $vocabByNamespace) {
+        // Vocabulary with the same prefix OR namespace exists. Now determine which case applies.
+
+            if ($vocabByPrefix && $vocabByNamespace) {
+                // Check if the vocab with this exact prefix and namespace is installed
+                try {
+                    $same = $vocabByPrefix->id() === $vocabByNamespace->id();
+                } catch (\Exception $e) {
+                    $same = false;
+                }
+
+                if ($same) {
+                    // Vocabulary exists (it matched on both prefix and namespace)
+                    return 1;
+                }
+                // Multiple vocabularies exist: one matches on prefix, the other on namespace
+                return 2;
+            }
+
+            // Vocabulary exists: same prefix, different namespace
+            if ($vocabByPrefix && !$vocabByNamespace) {
+                return 3;
+            }
+
+            // Vocabulary exists: same namespace, different prefix
+            if (!$vocabByPrefix && $vocabByNamespace) {
+                return 4;
             }
         }
-
-        $namespaceUri = $vocabularyData['vocabulary']['o:namespace_uri'];
-        /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
-        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
-        if ($vocabularyRepresentation) {
-            return true;
-        }
-
-        // Check if the vocabulary have been already imported.
-        $prefix = $vocabularyData['vocabulary']['o:prefix'];
-        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
-        if (!$vocabularyRepresentation) {
-            return false;
-        }
-
-        // Check if it is the same vocabulary.
-        // See createVocabulary() about the trim.
-        if (rtrim($vocabularyRepresentation->namespaceUri(), '#/') === rtrim($namespaceUri, '#/')) {
-            return true;
-        }
-
-        // It is another vocabulary with the same prefix.
-        return null;
+        // Vocabulary does not exist
+        return 0;
     }
 
     /**
@@ -288,12 +330,54 @@ class InstallResources
         array $vocabularyData,
         ?string $module = null
     ): bool {
+        $messenger = $this->services->get('ControllerPluginManager')->get('messenger');
         $vocabularyData = $this->prepareVocabularyData($vocabularyData, $module);
         $exists = $this->checkVocabulary($vocabularyData, $module);
-        if ($exists === false) {
+        if ($exists === 0) {
+            // vocab does not exist, create it
+            $message = new Message(
+                'Created vocabulary "%s".',
+                $vocabularyData['vocabulary']['o:label']
+            );
+            $messenger->addSuccess($message);
             return $this->createVocabulary($vocabularyData, $module);
+        } elseif ($exists === 1) {
+            // vocab exists (matched on prefix and namespace), update it
+            $message = new Message(
+                'Updated vocabulary "%s".',
+                $vocabularyData['vocabulary']['o:label']
+            );
+            $messenger->addSuccess($message);
+            return $this->updateVocabulary($vocabularyData, $module);
+        } elseif ($exists === 2) {
+            // multiple vocabs exist, do nothing
+            $message = new Message(
+                'Warning: prefix and namespace exist. Existing vocabularies use the same prefix "%s" or namespace "%s". Installation of the LDS module\'s vocabulary "%s" was skipped.',
+                $vocabularyData['vocabulary']['o:prefix'],
+                $vocabularyData['vocabulary']['o:namespace_uri'],
+                $vocabularyData['vocabulary']['o:label']
+            );
+            $messenger->addWarning($message);
+            return false;
+        } elseif ($exists === 3) {
+            // similar vocab exists (same prefix), do nothing
+            $message = new Message(
+                'Warning: prefix exists. An existing vocabulary uses the same prefix "%s" with a different namespace. Installation of the LDS module\'s vocabulary "%s" was skipped.',
+                $vocabularyData['vocabulary']['o:prefix'],
+                $vocabularyData['vocabulary']['o:label']
+            );
+            $messenger->addWarning($message);
+            return false;
+        } else {
+            // similar vocab exists (same namespace), do nothing
+            $message = new Message(
+                'Warning: namespace exists. An existing vocabulary uses the same namespace "%s" with a different prefix. Installation of the LDS module\'s vocabulary "%s" was skipped.',
+                $vocabularyData['vocabulary']['o:namespace_uri'],
+                $vocabularyData['vocabulary']['o:label']
+            );
+            $messenger->addWarning($message);
+            return false;
         }
-        return $this->updateVocabulary($vocabularyData, $module);
     }
 
     /**
