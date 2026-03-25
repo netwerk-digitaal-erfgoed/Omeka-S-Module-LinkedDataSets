@@ -169,46 +169,17 @@ class InstallResources
     public function checkVocabulary(array $vocabularyData, ?string $module = null): ?int
     {
         $vocabularyData = $this->prepareVocabularyData($vocabularyData, $module);
-//
-//        if (!empty($vocabularyData['update']['namespace_uri'])) {
-//            /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
-//            $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $vocabularyData['update']['namespace_uri']])->getContent();
-//            if ($vocabularyRepresentation) {
-//                return true;
-//            }
-//        }
-//
-//        $namespaceUri = $vocabularyData['vocabulary']['o:namespace_uri'];
-//        /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
-//        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
-//        if ($vocabularyRepresentation) {
-//            return true;
-//        }
-//
-//        // Check if the vocabulary have been already imported.
-//        $prefix = $vocabularyData['vocabulary']['o:prefix'];
-//        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
-//        if (!$vocabularyRepresentation) {
-//            return false;
-//        }
-//
-//        // Check if it is the same vocabulary.
-//        // See createVocabulary() about the trim.
-//        if (rtrim($vocabularyRepresentation->namespaceUri(), '#/') === rtrim($namespaceUri, '#/')) {
-//            return true;
-//        }
-//
-//        // It is another vocabulary with the same prefix.
-//        return null;
-
         $namespaceUri = $vocabularyData['vocabulary']['o:namespace_uri'] ?? '';
         $prefix = $vocabularyData['vocabulary']['o:prefix'] ?? '';
 
         // Look for existing vocabularies by prefix and by namespace separately.
-        // TODO: Note that namespace values 'https://schema.org' and 'https://schema.org/' (with trailing slash) are considered as different namespaces
-        // TODO: fix this with rtrim. See commented out code above.
+        // Note: in some cases, the uri of the ontology and the uri of the namespace are mixed. So, in the search we first
+        // try to find the exact namespace. If not found, we search again with the last character ("#" or "/") trimmed
         $vocabByPrefix = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
         $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
+        if (is_null($vocabByNamespace)) {
+            $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => rtrim($namespaceUri, '#/')])->getContent();
+        }
 
         if ($vocabByPrefix || $vocabByNamespace) {
         // Vocabulary with the same prefix OR namespace exists. Now determine which case applies.
@@ -390,33 +361,7 @@ class InstallResources
     public function createVocabulary(array $vocabularyData, ?string $module = null): bool
     {
         $vocabularyData = $this->prepareVocabularyData($vocabularyData, $module);
-
-        // Check if the vocabulary have been already imported.
         $prefix = $vocabularyData['vocabulary']['o:prefix'];
-        /** @var \Omeka\Api\Representation\VocabularyRepresentation $vocabularyRepresentation */
-        $vocabularyRepresentation = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
-
-        if ($vocabularyRepresentation) {
-            // Check if it is the same vocabulary.
-            // Note: in some cases, the uri of the ontology and the uri of the
-            // namespace are mixed. So, the last character ("#" or "/") is
-            // skipped for easier management.
-            if (rtrim($vocabularyRepresentation->namespaceUri(), '#/') === rtrim($vocabularyData['vocabulary']['o:namespace_uri'], '#/')) {
-                $message = new Message(
-                    'The vocabulary "%s" was already installed and was kept.', // @translate
-                    $vocabularyData['vocabulary']['o:label']
-                );
-                $messenger = $this->services->get('ControllerPluginManager')->get('messenger');
-                $messenger->addWarning($message);
-                return false;
-            }
-
-            // It is another vocabulary with the same prefix.
-            throw new RuntimeException((string) new Message(
-                'An error occured when adding the prefix "%s": another vocabulary exists with the same prefix. Resolve the conflict before installing this module.', // @translate
-                $prefix
-            ));
-        }
 
         /** @var \Omeka\Stdlib\RdfImporter $rdfImporter */
         $rdfImporter = $this->services->get('Omeka\RdfImporter');
