@@ -173,12 +173,24 @@ class InstallResources
         $prefix = $vocabularyData['vocabulary']['o:prefix'] ?? '';
 
         // Look for existing vocabularies by prefix and by namespace separately.
-        // Note: in some cases, the uri of the ontology and the uri of the namespace are mixed. So, in the search we first
-        // try to find the exact namespace. If not found, we search again with the last character ("#" or "/") trimmed
+        // By prefix:
         $vocabByPrefix = $this->api->searchOne('vocabularies', ['prefix' => $prefix])->getContent();
+
+        // By namespace, the logic is as follows:
+        // 1. try to find exact namespace match of installed vocab ($this->api->searchOne(...)) and installation candidate ($namespaceUri)
+        // 2. if not found, trim the trailing # or / characters and try again
+        // 3. if not found, try to find exact match on HTTP-equivalent (e.g. "https://schema.org/" vs "http://schema.org/")
+        // 4. if not found, trim the trailing # or / characters and try again on HTTP-equivalent
         $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => $namespaceUri])->getContent();
         if (is_null($vocabByNamespace)) {
             $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => rtrim($namespaceUri, '#/')])->getContent();
+        }
+        if (is_null($vocabByNamespace) && strncmp($namespaceUri, 'https://', 8) === 0) {
+            $httpNamespaceUri = 'http://' . substr($namespaceUri, 8);
+            $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => $httpNamespaceUri])->getContent();
+            if (is_null($vocabByNamespace)) {
+                $vocabByNamespace = $this->api->searchOne('vocabularies', ['namespace_uri' => rtrim($httpNamespaceUri, '#/')])->getContent();
+            }
         }
 
         if ($vocabByPrefix || $vocabByNamespace) {
@@ -314,6 +326,7 @@ class InstallResources
             return $this->createVocabulary($vocabularyData, $module);
         } elseif ($exists === 1) {
             // vocab exists (matched on prefix and namespace), update it
+            // NOTE: a potentially installed http-schema.org will be overwritten by the module's https-schema.org here
             $message = new Message(
                 'Updated vocabulary "%s".',
                 $vocabularyData['vocabulary']['o:label']
@@ -323,9 +336,9 @@ class InstallResources
         } elseif ($exists === 2) {
             // multiple vocabs exist, do nothing
             $message = new Message(
-                'Warning: prefix and namespace exist. Existing vocabularies use the same prefix "%s" or namespace "%s". Installation of the LDS module\'s vocabulary "%s" was skipped.',
+                'Warning: prefix and namespace exist. Existing vocabularies use the same prefix "%s" or namespace "<http|https>://%s". Installation of the LDS module\'s vocabulary "%s" was skipped.',
                 $vocabularyData['vocabulary']['o:prefix'],
-                $vocabularyData['vocabulary']['o:namespace_uri'],
+                preg_replace('/https?:\/\//', '', $vocabularyData['vocabulary']['o:namespace_uri']),
                 $vocabularyData['vocabulary']['o:label']
             );
             $messenger->addWarning($message);
@@ -342,8 +355,8 @@ class InstallResources
         } else {
             // similar vocab exists (same namespace), do nothing
             $message = new Message(
-                'Warning: namespace exists. An existing vocabulary uses the same namespace "%s" with a different prefix. Installation of the LDS module\'s vocabulary "%s" was skipped.',
-                $vocabularyData['vocabulary']['o:namespace_uri'],
+                'Warning: namespace exists. An existing vocabulary uses the same namespace "<http|https>://%s" with a different prefix. Installation of the LDS module\'s vocabulary "%s" was skipped.',
+                preg_replace('/https?:\/\//', '', $vocabularyData['vocabulary']['o:namespace_uri']),
                 $vocabularyData['vocabulary']['o:label']
             );
             $messenger->addWarning($message);
