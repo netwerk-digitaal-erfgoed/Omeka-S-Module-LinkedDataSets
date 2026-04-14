@@ -21,3 +21,9 @@ The Linked Data Sets (LDS) module adds the following functionalities to Omeka S:
 - The [conceptual model](doc/ConceptualModel.md) implemented in the  module
 - [Using the Linked Data Sets module](doc/Usage.md) to make a datacatalog and datadumps
 - [Developing](doc/Development.md) the module
+
+
+> [!NOTE]
+> The instructions in this module’s documentation refer to Schema.org using the `sdo:` prefix. However, the module
+> supports alternative prefixes, such as `schema:` or anything that you have configured. Therefore, references such as 
+> `sdo:DataCatalog` or `sdo:Dataset` can equally be interpreted as `schema:DataCatalog` or `schema:Dataset`.

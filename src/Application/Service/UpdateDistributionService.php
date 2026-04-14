@@ -14,11 +14,29 @@ final class UpdateDistributionService
 {
     protected ?Manager $api;
     protected SharedEventManager $sharedEventManager;
+    protected string $schemaPrefix;
 
     public function __construct(ServiceLocatorInterface $serviceLocator)
     {
         $this->api = $serviceLocator->get('Omeka\ApiManager');
         $this->sharedEventManager = $serviceLocator->get('SharedEventManager');
+        $this->schemaPrefix = $this->resolveSchemaPrefix();
+    }
+
+    /**
+     * Resolve the prefix of the Schema.org vocabulary that is installed in Omeka S.
+     * Checks both https and http namespaces to handle either variant.
+     * Falls back to 'sdo' (the default prefix used by this module) if not found.
+     */
+    private function resolveSchemaPrefix(): string
+    {
+        foreach (['https://schema.org/', 'http://schema.org/'] as $namespace) {
+            $results = $this->api->search('vocabularies', ['namespace_uri' => $namespace])->getContent();
+            if (!empty($results)) {
+                return $results[0]->prefix();
+            }
+        }
+        return 'sdo';
     }
 
 
@@ -32,26 +50,31 @@ final class UpdateDistributionService
         $item = $this->api->read('items', $distributionId)->getContent();
         $itemData = json_decode(json_encode($item), true);
 
-        if (array_key_exists('sdo:contentUrl', $itemData)) {
-            $itemData['sdo:contentUrl'][0]['@id'] = $url;
+        # Construct the item-metadata field names based on the Schema.org prefix that is installed in Omeka S, e.g. 'sdo:contentUrl' or 'schema:contentUrl'
+        $contentUrl  = $this->schemaPrefix . ':contentUrl';
+        $contentSize = $this->schemaPrefix . ':contentSize';
+        $dateModified = $this->schemaPrefix . ':dateModified';
+
+        if (array_key_exists($contentUrl, $itemData)) {
+            $itemData[$contentUrl][0]['@id'] = $url;
         }
 
-        if (array_key_exists('sdo:contentSize', $itemData)) {
-            $itemData['sdo:contentSize'][0]['@value'] = $fileSize;
+        if (array_key_exists($contentSize, $itemData)) {
+            $itemData[$contentSize][0]['@value'] = $fileSize;
         } else {
             $itemData = $this->arrayInsertAfter(
                 $itemData,
-                'sdo:contentUrl',
+                $contentUrl,
                 $this->createContentSizeArray($fileSize)
             );
         }
 
-        if (array_key_exists('sdo:dateModified', $itemData)) {
-            $itemData['sdo:dateUpdated'][0]['@value'] = $date;
+        if (array_key_exists($dateModified, $itemData)) {
+            $itemData[$dateModified][0]['@value'] = $date;
         } else {
             $itemData = $this->arrayInsertAfter(
                 $itemData,
-                'sdo:contentSize',
+                $contentSize,
                 $this->createDateModifiedArray($date)
             );
         }
@@ -61,10 +84,11 @@ final class UpdateDistributionService
 
     private function createContentSizeArray($fileSize)
     {
+        $term = $this->schemaPrefix . ':contentSize';
         $result = $this->api
-            ->search('properties', ['term' => 'sdo:contentSize'])->getContent();
+            ->search('properties', ['term' => $term])->getContent();
 
-        return ['sdo:contentSize' => [
+        return [$term => [
             [
                 'type' => "numeric:integer",
                 'property_id' => $result[0]->id(),
@@ -76,10 +100,11 @@ final class UpdateDistributionService
 
     private function createDateModifiedArray($date)
     {
+        $term = $this->schemaPrefix . ':dateModified';
         $result = $this->api
-            ->search('properties', ['term' => 'sdo:dateModified'])->getContent();
+            ->search('properties', ['term' => $term])->getContent();
 
-        return ['sdo:dateModified' => [
+        return [$term => [
             [
                 'type' => "numeric:timestamp",
                 'property_id' => $result[0]->id(),
