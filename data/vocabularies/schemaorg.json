@@ -2,10 +2,10 @@
   "vocabulary": {
     "o:namespace_uri": "https://schema.org/",
     "o:prefix": "sdo",
-    "o:label": "Schema.org for LinkedDataSets",
-    "o:comment": "A small portion of the large Schema.org vocabulary with the base properties and classes to describe Linked Datasets."
+    "o:label": "Schema.org for LinkedDataSets - 29.3",
+    "o:comment": "A copy of the Schema.org-current-https vocabulary that contains the base properties and classes to describe Linked Datasets and much more."
   },
   "strategy": "file",
-  "file": "schema.rdf",
+  "file": "schemaorg-current-https_v29.3.rdf",
   "format": "rdfxml"
 }
