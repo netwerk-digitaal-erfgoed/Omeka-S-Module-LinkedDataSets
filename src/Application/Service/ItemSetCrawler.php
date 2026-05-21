@@ -151,6 +151,12 @@ final class ItemSetCrawler
         RdfNamespace::set('o', 'http://omeka.org/s/vocabs/o#');
         $graph->parse($jsonLdString, "jsonld", $uri);
 
+        // Remove extracted_text literals (from module "Extract Text"): they may contain raw newline characters
+        // which are invalid inside N-Triples string literals and cause parse failures in the DataDumpJob.
+        foreach ($graph->resources() as $resource) {
+            $resource->delete('http://omeka.org/s/vocabs/o-module-extracttext#extracted_text');
+        }
+
         return $graph->serialise("nt");
     }
 
